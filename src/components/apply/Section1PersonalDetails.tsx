@@ -4,8 +4,7 @@ import { GovUKInput } from "./GovUKInput";
 import { GovUKSelect } from "./GovUKSelect";
 import { GovUKRadio } from "./GovUKRadio";
 import { GovUKButton } from "./GovUKButton";
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertCircle } from "lucide-react";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -16,6 +15,23 @@ export const Section1PersonalDetails = ({ form }: Props) => {
   const otherNames = watch("otherNames");
   const previousNames = watch("previousNames") || [];
   const rightToWork = watch("rightToWork");
+  const dob = watch("dob");
+
+  // Calculate age from DOB
+  const calculateAge = (dateOfBirth: string): number => {
+    if (!dateOfBirth) return 0;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const age = dob ? calculateAge(dob) : 0;
+  const isUnder18 = age > 0 && age < 18;
 
   const addPreviousName = () => {
     setValue("previousNames", [...previousNames, { fullName: "", dateFrom: "", dateTo: "" }]);
@@ -142,6 +158,15 @@ export const Section1PersonalDetails = ({ form }: Props) => {
         widthClass="10"
         {...register("dob")}
       />
+
+      {isUnder18 && (
+        <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))]">
+          <p className="text-sm font-bold flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            You must be at least 18 years old to register as a childminder.
+          </p>
+        </div>
+      )}
 
       <GovUKSelect
         label="Do you have the right to work in the UK?"

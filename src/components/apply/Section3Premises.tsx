@@ -4,6 +4,8 @@ import { GovUKInput } from "./GovUKInput";
 import { GovUKRadio } from "./GovUKRadio";
 import { GovUKButton } from "./GovUKButton";
 import { GovUKTextarea } from "./GovUKTextarea";
+import { GovUKAutocomplete } from "./GovUKAutocomplete";
+import { UK_LOCAL_AUTHORITIES } from "@/lib/ukLocalAuthorities";
 import { Plus, Trash2 } from "lucide-react";
 
 interface Props {
@@ -35,13 +37,14 @@ export const Section3Premises = ({ form }: Props) => {
 
       <h3 className="text-xl font-bold">Primary Childcare Premises</h3>
 
-      <GovUKInput
+      <GovUKAutocomplete
         label="Local authority / council"
-        hint="This is the local authority where the childcare premises is located."
+        hint="This is the local authority where the childcare premises is located. Start typing to search."
         required
-        widthClass="20"
+        options={UK_LOCAL_AUTHORITIES}
+        value={watch("localAuthority")}
+        onChange={(value) => setValue("localAuthority", value)}
         placeholder="Start typing..."
-        {...register("localAuthority")}
       />
 
       <GovUKRadio

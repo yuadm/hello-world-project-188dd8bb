@@ -2,6 +2,7 @@ import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
 import { GovUKRadio } from "./GovUKRadio";
 import { GovUKInput } from "./GovUKInput";
+import { AlertTriangle } from "lucide-react";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -11,6 +12,16 @@ export const Section5Qualifications = ({ form }: Props) => {
   const { register, watch, setValue } = form;
   const ageGroups = watch("ageGroups") || [];
   const firstAidCompleted = watch("firstAid.completed");
+  const firstAidCompletionDate = watch("firstAid.completionDate");
+
+  // Calculate if first aid is older than 3 years
+  const isFirstAidExpired = (): boolean => {
+    if (!firstAidCompletionDate) return false;
+    const completionDate = new Date(firstAidCompletionDate);
+    const threeYearsAgo = new Date();
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+    return completionDate < threeYearsAgo;
+  };
 
   const requires0to5 = ageGroups.includes("0-5");
   const requires5to7 = ageGroups.includes("5-7");
@@ -71,6 +82,15 @@ export const Section5Qualifications = ({ form }: Props) => {
               label="Certificate number"
               {...register("firstAid.certificateNumber")}
             />
+
+            {isFirstAidExpired() && (
+              <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-orange))] bg-[hsl(var(--govuk-inset-blue-bg))]">
+                <p className="text-sm font-bold flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Your first aid certificate is more than 3 years old. You will need to renew it before your registration can be approved.
+                </p>
+              </div>
+            )}
           </div>
         )}
 

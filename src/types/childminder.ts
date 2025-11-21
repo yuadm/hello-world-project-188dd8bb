@@ -52,8 +52,8 @@ export interface RegistrationEntry {
 
 export interface OffenceEntry {
   date: string;
-  offence: string;
-  sentence: string;
+  description: string;
+  outcome: string;
 }
 
 export interface ChildminderApplication {
@@ -130,10 +130,14 @@ export interface ChildminderApplication {
   children?: ChildEntry[];
 
   // Section 8: Suitability
-  prevRegOfsted?: RegistrationEntry[];
-  prevRegAgency?: RegistrationEntry[];
-  prevRegOtherUK?: RegistrationEntry[];
-  prevRegEU?: RegistrationEntry[];
+  prevRegOfsted: "Yes" | "No";
+  prevRegOfstedDetails?: RegistrationEntry[];
+  prevRegAgency: "Yes" | "No";
+  prevRegAgencyDetails?: RegistrationEntry[];
+  prevRegOtherUK: "Yes" | "No";
+  prevRegOtherUKDetails?: RegistrationEntry[];
+  prevRegEU: "Yes" | "No";
+  prevRegEUDetails?: RegistrationEntry[];
   healthCondition: "Yes" | "No";
   healthConditionDetails?: string;
   smoker: "Yes" | "No";
