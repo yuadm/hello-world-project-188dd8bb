@@ -95,6 +95,8 @@ export interface ChildminderApplication {
   ageGroups: string[];
   workWithOthers: "Yes" | "No";
   numberOfAssistants?: number;
+  childcareTimes?: string[];
+  overnightCare?: "Yes" | "No";
   proposedUnder1?: number;
   proposedUnder5?: number;
   proposed5to8?: number;

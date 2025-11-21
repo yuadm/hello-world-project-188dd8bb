@@ -2,7 +2,13 @@ import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
 import { GovUKRadio } from "./GovUKRadio";
 import { GovUKInput } from "./GovUKInput";
-import { useState } from "react";
+import { useMemo } from "react";
+import { AlertCircle, CheckCircle2, Info } from "lucide-react";
+import {
+  calculateCapacityRatios,
+  validateCapacity,
+  getCapacityGuidanceText,
+} from "@/lib/capacityCalculator";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -13,6 +19,10 @@ export const Section4Service = ({ form }: Props) => {
   const ageGroups = watch("ageGroups") || [];
   const workWithOthers = watch("workWithOthers");
   const numberOfAssistants = watch("numberOfAssistants") || 1;
+  const proposedUnder1 = watch("proposedUnder1") || 0;
+  const proposedUnder5 = watch("proposedUnder5") || 0;
+  const proposed5to8 = watch("proposed5to8") || 0;
+  const proposed8plus = watch("proposed8plus") || 0;
 
   const toggleAgeGroup = (ageGroup: string) => {
     if (ageGroups.includes(ageGroup)) {
@@ -22,9 +32,25 @@ export const Section4Service = ({ form }: Props) => {
     }
   };
 
-  const totalAdults = workWithOthers === "Yes" ? 1 + (numberOfAssistants || 0) : 1;
-  const maxUnder1 = totalAdults * 1;
-  const maxUnder5 = totalAdults * 3;
+  // Calculate capacity ratios
+  const capacityRatios = useMemo(() => {
+    return calculateCapacityRatios(workWithOthers, numberOfAssistants);
+  }, [workWithOthers, numberOfAssistants]);
+
+  // Validate proposed numbers
+  const validation = useMemo(() => {
+    return validateCapacity(
+      {
+        under1: proposedUnder1,
+        under5: proposedUnder5,
+        age5to8: proposed5to8,
+        age8plus: proposed8plus,
+      },
+      capacityRatios
+    );
+  }, [proposedUnder1, proposedUnder5, proposed5to8, proposed8plus, capacityRatios]);
+
+  const guidanceText = getCapacityGuidanceText(capacityRatios);
 
   return (
     <div className="space-y-8">
@@ -69,30 +95,94 @@ export const Section4Service = ({ form }: Props) => {
       />
 
       {workWithOthers === "Yes" && (
-        <GovUKInput
-          label="How many assistants/co-childminders?"
-          type="number"
-          required
-          widthClass="10"
-          min="1"
-          {...register("numberOfAssistants", { valueAsNumber: true })}
-        />
+        <div className="space-y-4">
+          <GovUKInput
+            label="How many assistants/co-childminders?"
+            type="number"
+            required
+            widthClass="10"
+            min="1"
+            max="3"
+            hint="Maximum 3 assistants"
+            {...register("numberOfAssistants", { valueAsNumber: true })}
+          />
+          
+          {numberOfAssistants > 3 && (
+            <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))] flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-[hsl(var(--govuk-red))] flex-shrink-0 mt-0.5" />
+              <p className="text-sm">
+                You cannot work with more than 3 assistants. Please adjust the number.
+              </p>
+            </div>
+          )}
+        </div>
       )}
 
+      {/* Capacity Guidance Info Box */}
       <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-        <h3 className="text-base font-bold mb-2">Proposed Capacity Guidance</h3>
-        <p className="text-sm mb-2">
-          Standard childminder ratios (subject to Ofsted approval):
-        </p>
-        <ul className="list-disc list-inside text-sm space-y-1">
-          <li>Maximum {maxUnder1} children under 1 year</li>
-          <li>Maximum {maxUnder5} children under 5 years (including those under 1)</li>
-          <li>Maximum 6 children under 8 years in total</li>
-          <li>
-            You are working with {totalAdults} adult{totalAdults > 1 ? "s" : ""}
-          </li>
-        </ul>
+        <div className="flex items-start gap-3">
+          <Info className="h-5 w-5 text-[hsl(var(--govuk-blue))] flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-base font-bold mb-2">Your Maximum Capacity</h3>
+            <p className="text-sm mb-2">
+              Based on {capacityRatios.totalAdults} adult{capacityRatios.totalAdults > 1 ? "s" : ""}, these are your standard ratios (subject to Ofsted approval):
+            </p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              {guidanceText.map((text, index) => (
+                <li key={index}>{text}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
+
+      {/* Real-time Capacity Validation */}
+      {(proposedUnder1 > 0 || proposedUnder5 > 0 || proposed5to8 > 0 || proposed8plus > 0) && (
+        <div className="space-y-3">
+          {validation.isValid && validation.warnings.length === 0 && (
+            <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-green))] bg-[hsl(var(--govuk-inset-green-bg))] flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-[hsl(var(--govuk-green))] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm mb-1">✓ Your proposed numbers are within limits</p>
+                <p className="text-sm">
+                  Total under 5: {validation.totalUnder5} of {capacityRatios.maxUnder5} | 
+                  Total under 8: {validation.totalUnder8} of {capacityRatios.maxUnder8}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {validation.warnings.length > 0 && validation.isValid && (
+            <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))] flex items-start gap-3">
+              <Info className="h-5 w-5 text-[hsl(var(--govuk-blue))] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm mb-1">Notice</p>
+                <ul className="text-sm space-y-1">
+                  {validation.warnings.map((warning, index) => (
+                    <li key={index}>• {warning}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {validation.errors.length > 0 && (
+            <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))] flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-[hsl(var(--govuk-red))] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm mb-2 text-[hsl(var(--govuk-red))]">
+                  Capacity limits exceeded
+                </p>
+                <ul className="text-sm space-y-1">
+                  {validation.errors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <h3 className="text-xl font-bold">Proposed Numbers of Children</h3>
 
@@ -102,7 +192,8 @@ export const Section4Service = ({ form }: Props) => {
           type="number"
           widthClass="10"
           min="0"
-          max={maxUnder1}
+          max={capacityRatios.maxUnder1}
+          hint={`Maximum: ${capacityRatios.maxUnder1}`}
           {...register("proposedUnder1", { valueAsNumber: true })}
         />
         <GovUKInput
@@ -110,6 +201,7 @@ export const Section4Service = ({ form }: Props) => {
           type="number"
           widthClass="10"
           min="0"
+          hint="Not including children under 1"
           {...register("proposedUnder5", { valueAsNumber: true })}
         />
         <GovUKInput
@@ -125,6 +217,53 @@ export const Section4Service = ({ form }: Props) => {
           widthClass="10"
           min="0"
           {...register("proposed8plus", { valueAsNumber: true })}
+        />
+      </div>
+
+      <div className="space-y-6 border-t pt-6">
+        <h3 className="text-xl font-bold">Childcare Times</h3>
+        
+        <div className="space-y-3">
+          <label className="text-base font-semibold block">
+            When will you provide childcare?<span className="text-[hsl(var(--govuk-red))] ml-1">*</span>
+          </label>
+          <p className="text-sm text-[hsl(var(--govuk-text-secondary))] mb-3">
+            Select all that apply
+          </p>
+          
+          {[
+            { value: "Weekdays", label: "Weekdays (Monday - Friday)" },
+            { value: "Weekends", label: "Weekends" },
+            { value: "Before School", label: "Before School" },
+            { value: "After School", label: "After School" },
+            { value: "School Holidays", label: "School Holidays" },
+          ].map((option) => (
+            <div key={option.value} className="flex items-center relative pl-10">
+              <input
+                type="checkbox"
+                id={`childcareTimes-${option.value}`}
+                value={option.value}
+                {...register("childcareTimes")}
+                className="absolute left-0 top-0 w-6 h-6 cursor-pointer appearance-none border-2 border-[hsl(var(--govuk-black))] checked:before:content-['✔'] checked:before:block checked:before:text-center checked:before:text-xl checked:before:leading-5 checked:before:text-[hsl(var(--govuk-black))] focus:outline-none focus:ring-[3px] focus:ring-[hsl(var(--govuk-focus-yellow))] focus:ring-offset-0"
+              />
+              <label htmlFor={`childcareTimes-${option.value}`} className="text-base cursor-pointer">
+                {option.label}
+              </label>
+            </div>
+          ))}
+        </div>
+
+        <GovUKRadio
+          legend="Will you be looking after children overnight?"
+          hint="This requires specific approval and potentially different premises requirements."
+          required
+          name="overnightCare"
+          options={[
+            { value: "Yes", label: "Yes" },
+            { value: "No", label: "No" },
+          ]}
+          value={watch("overnightCare") || "No"}
+          onChange={(value) => setValue("overnightCare", value as "Yes" | "No")}
         />
       </div>
     </div>
