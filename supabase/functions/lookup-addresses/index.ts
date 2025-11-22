@@ -106,8 +106,18 @@ serve(async (req) => {
     const data = await response.json();
     console.log(`API Response Data:`, JSON.stringify(data));
     
-    if (!data.result || !Array.isArray(data.result)) {
-      console.error('Unexpected API response format:', data);
+    // Normalise Ideal Postcodes response into an array of address objects
+    let resultArray: any[] = [];
+    if (Array.isArray(data.result)) {
+      resultArray = data.result;
+    } else if (data.result && typeof data.result === 'object') {
+      resultArray = [data.result];
+    } else if (Array.isArray(data.addresses)) {
+      resultArray = data.addresses;
+    }
+    
+    if (!resultArray.length) {
+      console.error('No addresses returned for postcode', cleanPostcode, 'raw data:', data);
       return new Response(
         JSON.stringify({ 
           addresses: [],
@@ -120,17 +130,17 @@ serve(async (req) => {
       );
     }
     
-    console.log(`Found ${data.result.length} addresses`);
+    console.log(`Found ${resultArray.length} addresses`);
 
     // Transform Ideal Postcodes response format to match frontend expectations
     const transformedData = {
-      addresses: data.result?.map((address: any) => {
+      addresses: resultArray.map((address: any) => {
         return {
           line_1: address.line_1 || "",
           line_2: address.line_2 || "",
           line_3: address.line_3 || "",
           line_4: "",
-          locality: address.locality || "",
+          locality: address.locality || address.dependant_locality || address.double_dependant_locality || "",
           town_or_city: address.post_town || "",
           county: address.county || "",
           formatted_address: [
@@ -142,7 +152,7 @@ serve(async (req) => {
             address.county
           ].filter(Boolean)
         };
-      }) || []
+      })
     };
 
     return new Response(
