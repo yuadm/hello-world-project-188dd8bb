@@ -111,7 +111,7 @@ export function postcodeResultToAddress(result: PostcodeResult, addressLine1: st
 }
 
 /**
- * Lookup addresses using getAddress.io API via Supabase edge function
+ * Lookup addresses using Ideal Postcodes API via Supabase edge function
  */
 export async function lookupAddressesByPostcode(postcode: string): Promise<AddressListItem[]> {
   try {
