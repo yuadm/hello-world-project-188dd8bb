@@ -339,14 +339,14 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
                     </td>
                     <td className="p-3">
                       <div className="flex gap-2">
-                        {member.dbs_status === 'not_requested' && (
+                        {(member.dbs_status === 'not_requested' || member.dbs_status === 'requested') && (
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleRequestDBS(member)}
                           >
                             <Mail className="h-4 w-4 mr-1" />
-                            Request
+                            {member.dbs_status === 'requested' ? 'Resend' : 'Request'}
                           </Button>
                         )}
                         <Button
