@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, AlertCircle, CheckCircle, Clock, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RecordCertificateModal } from "./RecordCertificateModal";
+import { RequestDBSModal } from "./RequestDBSModal";
 import { format, differenceInYears, addYears, differenceInDays } from "date-fns";
 
 interface DBSMember {
@@ -35,6 +36,8 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
   const [syncing, setSyncing] = useState(false);
   const [selectedMember, setSelectedMember] = useState<DBSMember | null>(null);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestMember, setRequestMember] = useState<DBSMember | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,42 +92,9 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
     }
   };
 
-  const sendDBSRequest = async (member: DBSMember) => {
-    if (!member.email) {
-      toast({
-        title: "No Email",
-        description: "Please add an email address for this member first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase.functions.invoke('send-dbs-request-email', {
-        body: {
-          memberId: member.id,
-          memberName: member.full_name,
-          memberEmail: member.email,
-          applicationId,
-          applicantName,
-        },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Email Sent",
-        description: `DBS request sent to ${member.full_name}`,
-      });
-
-      loadMembers();
-    } catch (error: any) {
-      toast({
-        title: "Failed to Send Email",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleRequestDBS = (member: DBSMember) => {
+    setRequestMember(member);
+    setShowRequestModal(true);
   };
 
   const sendBirthdayAlert = async (member: DBSMember) => {
@@ -331,8 +301,7 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => sendDBSRequest(member)}
-                            disabled={!member.email}
+                            onClick={() => handleRequestDBS(member)}
                           >
                             <Mail className="h-4 w-4 mr-1" />
                             Request
@@ -423,6 +392,20 @@ export const DBSComplianceSection = ({ applicationId, applicantEmail, applicantN
           onOpenChange={setShowCertificateModal}
           member={selectedMember}
           onSave={handleCertificateSaved}
+        />
+      )}
+
+      {requestMember && (
+        <RequestDBSModal
+          open={showRequestModal}
+          onOpenChange={setShowRequestModal}
+          memberId={requestMember.id}
+          memberName={requestMember.full_name}
+          applicationId={applicationId}
+          applicantName={applicantName}
+          applicantEmail={applicantEmail}
+          originalApplicantEmail={applicantEmail}
+          onSuccess={loadMembers}
         />
       )}
     </div>
