@@ -142,24 +142,82 @@ const Apply = () => {
     }
 
     try {
-      // Calculate payment
-      const paymentAmount = data.ageGroups?.includes("0-5") || data.ageGroups?.includes("5-7") ? 200 : 100;
-
-      // Submit to database
+      // Submit to database with proper column mapping
       const { error } = await supabase
-        .from('childminder_applications' as any)
+        .from('childminder_applications')
         .insert({
+          // Personal Details
+          title: data.title,
           first_name: data.firstName,
+          middle_names: data.middleNames,
           last_name: data.lastName,
-          email: data.email,
-          phone: data.phone,
+          gender: data.gender,
           date_of_birth: data.dob,
-          ni_number: data.niNumber,
-          service_type: data.ageGroups?.join(', '),
-          application_data: data,
-          status: 'pending',
-          payment_amount: paymentAmount
-        });
+          previous_names: data.previousNames,
+          national_insurance_number: data.niNumber,
+          email: data.email,
+          phone_mobile: data.phone,
+          
+          // Address
+          current_address: data.homeAddress,
+          address_history: data.addressHistory,
+          
+          // Premises
+          premises_address: data.childcareAddress || data.homeAddress,
+          premises_ownership: data.premisesType,
+          premises_animals: data.pets,
+          premises_animal_details: data.petsDetails,
+          
+          // Service Details
+          service_type: data.premisesType,
+          service_age_range: data.ageGroups,
+          service_capacity: {
+            under1: data.proposedUnder1,
+            under5: data.proposedUnder5,
+            ages5to8: data.proposed5to8,
+            ages8plus: data.proposed8plus
+          },
+          service_hours: data.childcareTimes,
+          service_local_authority: data.localAuthority,
+          
+          // Qualifications & Employment
+          qualifications: {
+            firstAid: data.firstAid,
+            safeguarding: data.safeguarding,
+            eyfsChildminding: data.eyfsChildminding,
+            level2Qual: data.level2Qual
+          },
+          employment_history: data.employmentHistory,
+          
+          // People
+          people_in_household: {
+            adults: data.adults,
+            children: data.children
+          },
+          people_regular_contact: data.assistants,
+          
+          // Suitability
+          previous_registration: data.prevRegOfsted,
+          registration_details: {
+            ofsted: data.prevRegOfstedDetails,
+            agency: data.prevRegAgencyDetails,
+            otherUK: data.prevRegOtherUKDetails,
+            eu: data.prevRegEUDetails
+          },
+          health_conditions: data.healthCondition,
+          health_details: data.healthConditionDetails,
+          criminal_convictions: data.offenceHistory,
+          convictions_details: data.offenceDetails ? JSON.stringify(data.offenceDetails) : null,
+          safeguarding_concerns: data.socialServices,
+          safeguarding_details: data.socialServicesDetails,
+          
+          // Declaration
+          declaration_confirmed: data.declarationAccuracy,
+          declaration_signature: data.signatureFullName,
+          declaration_date: data.signatureDate,
+          
+          status: 'pending'
+        } as any);
 
       if (error) throw error;
 
