@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Mail, AlertCircle, CheckCircle, Clock, FileText, Send, AlertTriangle, UserPlus, Edit, Trash2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EmployeeRecordCertificateModal } from "./EmployeeRecordCertificateModal";
@@ -66,6 +67,7 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
   const [editingMember, setEditingMember] = useState<DBSMember | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deletingMember, setDeletingMember] = useState<DBSMember | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "adults" | "children">("all");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -241,7 +243,6 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
 
   const getApproaching16 = () => {
     return members.filter(m => {
-      if (m.member_type !== 'child') return false;
       const age = calculateAge(m.date_of_birth);
       if (age >= 16) return false;
       const daysUntil16 = differenceInDays(addYears(new Date(m.date_of_birth), 16), new Date());
@@ -290,14 +291,179 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
   };
 
   const approaching16 = getApproaching16();
-  const allAdults = members.filter(m => m.member_type === 'adult');
-  const allChildren = members.filter(m => m.member_type === 'child');
-  const adults = filterMembers(allAdults);
-  const children = filterMembers(allChildren);
+  
+  // Filter members by age (recalculated to handle aging children)
+  const allMembers = filterMembers(members);
+  const adults = allMembers.filter(m => {
+    const age = differenceInYears(new Date(), new Date(m.date_of_birth));
+    return age >= 16;
+  });
+  const children = allMembers.filter(m => {
+    const age = differenceInYears(new Date(), new Date(m.date_of_birth));
+    return age < 16;
+  });
 
   if (loading) {
     return <div className="text-center py-8">Loading household members...</div>;
   }
+
+  const renderAdultsTable = () => (
+    <div className="border rounded-lg overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-muted">
+          <tr>
+            <th className="w-12 p-3">
+              <Checkbox
+                checked={adults.length > 0 && adults.every(m => selectedMemberIds.has(m.id))}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedMemberIds(new Set([...selectedMemberIds, ...adults.map(m => m.id)]));
+                  } else {
+                    const newSet = new Set(selectedMemberIds);
+                    adults.forEach(m => newSet.delete(m.id));
+                    setSelectedMemberIds(newSet);
+                  }
+                }}
+              />
+            </th>
+            <th className="text-left p-3 font-medium">Name</th>
+            <th className="text-left p-3 font-medium">Relationship</th>
+            <th className="text-left p-3 font-medium">DOB / Age</th>
+            <th className="text-left p-3 font-medium">Risk Level</th>
+            <th className="text-left p-3 font-medium">DBS Status</th>
+            <th className="text-left p-3 font-medium">Reminders</th>
+            <th className="text-left p-3 font-medium">Certificate #</th>
+            <th className="text-left p-3 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {adults.map(member => {
+            const daysSinceContact = member.last_contact_date 
+              ? differenceInDays(new Date(), new Date(member.last_contact_date))
+              : null;
+            
+            return (
+              <tr 
+                key={member.id} 
+                className={`border-t ${member.risk_level === 'critical' ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}
+              >
+                <td className="p-3">
+                  <Checkbox
+                    checked={selectedMemberIds.has(member.id)}
+                    onCheckedChange={() => handleToggleMemberSelection(member.id)}
+                  />
+                </td>
+                <td className="p-3 font-medium">{member.full_name}</td>
+                <td className="p-3 text-sm">{member.relationship || member.member_type}</td>
+                <td className="p-3 text-sm">
+                  {format(new Date(member.date_of_birth), 'dd/MM/yyyy')}
+                  <br />
+                  <span className="text-muted-foreground">({calculateAge(member.date_of_birth)} years)</span>
+                </td>
+                <td className="p-3">{getRiskBadge(member.risk_level)}</td>
+                <td className="p-3">{getStatusBadge(member.dbs_status)}</td>
+                <td className="p-3">
+                  <div className="text-sm">
+                    <div className="font-medium">{member.reminder_count || 0} sent</div>
+                    {daysSinceContact !== null && (
+                      <div className="text-xs text-muted-foreground">
+                        Last: {daysSinceContact}d ago
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td className="p-3 text-sm">
+                  <div>
+                    {member.dbs_certificate_number || "-"}
+                  </div>
+                  {member.dbs_certificate_expiry_date && (
+                    <div className="text-xs text-muted-foreground">
+                      Expires: {format(new Date(member.dbs_certificate_expiry_date), 'dd/MM/yyyy')}
+                    </div>
+                  )}
+                </td>
+                <td className="p-3">
+                  <div className="flex flex-wrap gap-2">
+                    {(member.dbs_status === 'not_requested' || member.dbs_status === 'requested') && (
+                      <Button size="sm" variant="outline" onClick={() => handleRequestDBS(member)}>
+                        <Mail className="h-4 w-4 mr-1" />
+                        {member.dbs_status === 'requested' ? 'Resend' : 'Request'}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="secondary" onClick={() => handleRecordCertificate(member)}>
+                      <FileText className="h-4 w-4 mr-1" />
+                      {member.dbs_certificate_number ? 'Update' : 'Record'}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleEditMember(member)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteMember(member)}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderChildrenTable = () => (
+    <div className="border rounded-lg overflow-hidden">
+      <table className="w-full">
+        <thead className="bg-muted">
+          <tr>
+            <th className="text-left p-3 font-medium">Name</th>
+            <th className="text-left p-3 font-medium">Relationship</th>
+            <th className="text-left p-3 font-medium">DOB / Age</th>
+            <th className="text-left p-3 font-medium">Certificate #</th>
+            <th className="text-left p-3 font-medium">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {children.map(child => {
+            const age = differenceInYears(new Date(), new Date(child.date_of_birth));
+            const is16Plus = age >= 16;
+            
+            return (
+              <tr key={child.id} className="border-t">
+                <td className="p-3 font-medium">{child.full_name}</td>
+                <td className="p-3 text-sm">{child.relationship || child.member_type}</td>
+                <td className="p-3 text-sm">
+                  {format(new Date(child.date_of_birth), 'dd/MM/yyyy')}
+                  <br />
+                  <span className="text-muted-foreground">({age} years)</span>
+                </td>
+                <td className="p-3 text-sm">{child.dbs_certificate_number || "-"}</td>
+                <td className="p-3">
+                  <div className="flex flex-wrap gap-2">
+                    {is16Plus && (
+                      <Button size="sm" variant="secondary" onClick={() => handleRecordCertificate(child)}>
+                        <FileText className="h-4 w-4 mr-1" />
+                        {child.dbs_certificate_number ? 'Update' : 'Record'}
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => handleEditMember(child)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleDeleteMember(child)}>
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -370,189 +536,61 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
         </div>
       )}
 
-      {/* Adults & Assistants Table */}
-      {adults.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Adults & Assistants (16+)</h3>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="w-12 p-3"></th>
-                  <th className="text-left p-3 font-medium">Name</th>
-                  <th className="text-left p-3 font-medium">Relationship</th>
-                  <th className="text-left p-3 font-medium">DOB / Age</th>
-                  <th className="text-left p-3 font-medium">Risk Level</th>
-                  <th className="text-left p-3 font-medium">DBS Status</th>
-                  <th className="text-left p-3 font-medium">Reminders</th>
-                  <th className="text-left p-3 font-medium">Certificate #</th>
-                  <th className="text-left p-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {adults.map(member => {
-                  const daysSinceContact = member.last_contact_date 
-                    ? differenceInDays(new Date(), new Date(member.last_contact_date))
-                    : null;
-                  
-                  return (
-                    <tr 
-                      key={member.id} 
-                      className={`border-t ${member.risk_level === 'critical' ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}
-                    >
-                      <td className="p-3">
-                        <Checkbox
-                          checked={selectedMemberIds.has(member.id)}
-                          onCheckedChange={() => handleToggleMemberSelection(member.id)}
-                        />
-                      </td>
-                      <td className="p-3 font-medium">{member.full_name}</td>
-                      <td className="p-3 text-sm">{member.relationship || member.member_type}</td>
-                      <td className="p-3 text-sm">
-                        {format(new Date(member.date_of_birth), 'dd/MM/yyyy')}
-                        <br />
-                        <span className="text-muted-foreground">({calculateAge(member.date_of_birth)} years)</span>
-                      </td>
-                      <td className="p-3">{getRiskBadge(member.risk_level)}</td>
-                      <td className="p-3">{getStatusBadge(member.dbs_status)}</td>
-                      <td className="p-3">
-                        <div className="text-sm">
-                          <div className="font-medium">{member.reminder_count || 0} sent</div>
-                          {daysSinceContact !== null && (
-                            <div className="text-xs text-muted-foreground">
-                              Last: {daysSinceContact}d ago
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-3 text-sm">
-                        <div>
-                          {member.dbs_certificate_number || "-"}
-                        </div>
-                        {member.dbs_certificate_expiry_date && (
-                          <div className="text-xs text-muted-foreground">
-                            Expires: {format(new Date(member.dbs_certificate_expiry_date), 'dd/MM/yyyy')}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-wrap gap-2">
-                          {(member.dbs_status === 'not_requested' || member.dbs_status === 'requested') && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleRequestDBS(member)}
-                            >
-                              <Mail className="h-4 w-4 mr-1" />
-                              {member.dbs_status === 'requested' ? 'Resend' : 'Request'}
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleRecordCertificate(member)}
-                          >
-                            <FileText className="h-4 w-4 mr-1" />
-                            {member.dbs_certificate_number ? 'Update' : 'Record'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditMember(member)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteMember(member)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {/* Tabs for All/Adults/Children */}
+      {allMembers.length > 0 ? (
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "all" | "adults" | "children")} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="all">All ({allMembers.length})</TabsTrigger>
+            <TabsTrigger value="adults">Adults ({adults.length})</TabsTrigger>
+            <TabsTrigger value="children">Children ({children.length})</TabsTrigger>
+          </TabsList>
 
-      {/* Children Table */}
-      {children.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Children in Household</h3>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="text-left p-3 font-medium">Name</th>
-                  <th className="text-left p-3 font-medium">DOB / Age</th>
-                  <th className="text-left p-3 font-medium">Status</th>
-                  <th className="text-left p-3 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {children.map(child => {
-                  const age = calculateAge(child.date_of_birth);
-                  const is16Plus = age >= 16;
-                  return (
-                    <tr key={child.id} className="border-t">
-                      <td className="p-3 font-medium">{child.full_name}</td>
-                      <td className="p-3 text-sm">
-                        {format(new Date(child.date_of_birth), 'dd/MM/yyyy')}
-                        <br />
-                        <span className="text-muted-foreground">({age} years)</span>
-                      </td>
-                      <td className="p-3">
-                        {is16Plus ? getStatusBadge(child.dbs_status) : (
-                          <Badge variant="outline">Under 16 - No DBS Required</Badge>
-                        )}
-                      </td>
-                      <td className="p-3">
-                        <div className="flex flex-wrap gap-2">
-                          {is16Plus && (
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => handleRecordCertificate(child)}
-                            >
-                              <FileText className="h-4 w-4 mr-1" />
-                              {child.dbs_certificate_number ? 'Update' : 'Record'}
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEditMember(child)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteMember(child)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+          <TabsContent value="all" className="space-y-6">
+            {adults.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Adults & Assistants (16+)</h3>
+                {renderAdultsTable()}
+              </div>
+            )}
+            {children.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Children (Under 16)</h3>
+                {renderChildrenTable()}
+              </div>
+            )}
+          </TabsContent>
 
-      {members.length === 0 && (
+          <TabsContent value="adults" className="space-y-4">
+            {adults.length > 0 ? (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Adults & Assistants (16+)</h3>
+                {renderAdultsTable()}
+              </div>
+            ) : (
+              <div className="text-center py-12 border rounded-lg bg-muted/30">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium mb-2">No Adults</p>
+                <p className="text-sm text-muted-foreground">No household members aged 16 or over.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="children" className="space-y-4">
+            {children.length > 0 ? (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Children (Under 16)</h3>
+                {renderChildrenTable()}
+              </div>
+            ) : (
+              <div className="text-center py-12 border rounded-lg bg-muted/30">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium mb-2">No Children</p>
+                <p className="text-sm text-muted-foreground">No household members under 16 years old.</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      ) : (
         <div className="text-center py-12 border rounded-lg bg-muted/30">
           <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <p className="text-lg font-medium mb-2">No Household Members</p>
@@ -566,39 +604,7 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
         </div>
       )}
 
-      {selectedMember && (
-        <EmployeeRecordCertificateModal
-          open={showCertificateModal}
-          onOpenChange={setShowCertificateModal}
-          member={selectedMember}
-          onSave={handleCertificateSaved}
-        />
-      )}
-
-      {requestMember && (
-        <EmployeeRequestDBSModal
-          open={showRequestModal}
-          onOpenChange={setShowRequestModal}
-          memberId={requestMember.id}
-          memberName={requestMember.full_name}
-          employeeId={employeeId}
-          employeeName={employeeName}
-          employeeEmail={employeeEmail}
-          originalEmployeeEmail={employeeEmail}
-          onSuccess={loadMembers}
-        />
-      )}
-
-      <EmployeeBatchDBSRequestModal
-        open={showBatchRequestModal}
-        onOpenChange={setShowBatchRequestModal}
-        members={getSelectedMembers()}
-        employeeId={employeeId}
-        employeeEmail={employeeEmail}
-        employeeName={employeeName}
-        onSuccess={handleBatchRequestSuccess}
-      />
-
+      {/* Modals */}
       <AddEditHouseholdMemberModal
         open={showAddEditModal}
         onOpenChange={setShowAddEditModal}
@@ -627,6 +633,41 @@ export const EmployeeDBSComplianceSection = ({ employeeId, employeeEmail, employ
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedMember && (
+        <EmployeeRecordCertificateModal
+          open={showCertificateModal}
+          onOpenChange={setShowCertificateModal}
+          member={selectedMember}
+          onSave={handleCertificateSaved}
+        />
+      )}
+
+      {requestMember && (
+        <EmployeeRequestDBSModal
+          open={showRequestModal}
+          onOpenChange={setShowRequestModal}
+          memberId={requestMember.id}
+          memberName={requestMember.full_name}
+          employeeId={employeeId}
+          employeeName={employeeName}
+          employeeEmail={requestMember.email || ''}
+          originalEmployeeEmail={employeeEmail}
+          onSuccess={loadMembers}
+        />
+      )}
+
+      {selectedMemberIds.size > 0 && (
+        <EmployeeBatchDBSRequestModal
+          open={showBatchRequestModal}
+          onOpenChange={setShowBatchRequestModal}
+          members={getSelectedMembers()}
+          employeeId={employeeId}
+          employeeEmail={employeeEmail}
+          employeeName={employeeName}
+          onSuccess={handleBatchRequestSuccess}
+        />
+      )}
     </div>
   );
 };
