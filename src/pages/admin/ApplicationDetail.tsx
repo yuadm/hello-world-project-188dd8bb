@@ -31,6 +31,7 @@ import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
 import { getValidatorForSection } from "@/lib/formValidation";
 import { DBSComplianceSection } from "@/components/admin/DBSComplianceSection";
+import AdminLayout from "@/components/admin/AdminLayout";
 
 interface DBApplication {
   id: string;
@@ -151,36 +152,8 @@ const ApplicationDetail = () => {
   });
 
   useEffect(() => {
-    checkAdminAccess();
-  }, [id]);
-
-  const checkAdminAccess = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      navigate('/admin/login');
-      return;
-    }
-
-    const { data: roles } = await supabase
-      .from('user_roles' as any)
-      .select('role')
-      .eq('user_id', session.user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (!roles) {
-      toast({
-        title: "Access Denied",
-        description: "You do not have admin privileges.",
-        variant: "destructive",
-      });
-      navigate('/admin/login');
-      return;
-    }
-
     fetchApplication();
-  };
+  }, [id]);
 
   const mapDBToForm = (data: DBApplication): Partial<ChildminderApplication> => {
     const qualifications = data.qualifications || {};
@@ -588,12 +561,14 @@ const ApplicationDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading application...</p>
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading application...</p>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
@@ -603,48 +578,49 @@ const ApplicationDetail = () => {
 
   if (isEditMode) {
     return (
-      <div className="min-h-screen bg-[hsl(var(--govuk-grey-background))]">
-        <header className="bg-[hsl(var(--govuk-black))] text-white border-b-[10px] border-white">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-2xl font-bold mr-4">Ready Kids</span>
-                <span className="text-lg border-l pl-4 border-white/30">
-                  Edit Application
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => {
-                  setIsEditMode(false);
-                  setCurrentSection(1);
-                  setErrors([]);
-                  fetchApplication();
-                }}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
+      <AdminLayout>
+        <div className="min-h-screen bg-[hsl(var(--govuk-grey-background))] -mx-4 -my-8">
+          <header className="bg-[hsl(var(--govuk-black))] text-white border-b-[10px] border-white">
+            <div className="container mx-auto px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="text-2xl font-bold mr-4">Ready Kids</span>
+                  <span className="text-lg border-l pl-4 border-white/30">
+                    Edit Application
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    setIsEditMode(false);
+                    setCurrentSection(1);
+                    setErrors([]);
+                    fetchApplication();
+                  }}>
+                    <X className="h-4 w-4 mr-2" />
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </div>
+          </header>
+
+          <div className="container mx-auto px-4 py-6">
+            <p className="text-sm">
+              <button onClick={() => navigate('/admin/applications')} className="underline text-primary hover:text-primary/80">
+                Back to applications
+              </button>
+            </p>
           </div>
-        </header>
 
-        <div className="container mx-auto px-4 py-6">
-          <p className="text-sm">
-            <button onClick={() => navigate('/admin/applications')} className="underline text-primary hover:text-primary/80">
-              Back to applications
-            </button>
-          </p>
-        </div>
+          <main className="container mx-auto px-4 md:px-8 pb-16">
+            <div className="max-w-4xl mx-auto bg-white p-6 md:p-10 shadow-lg">
+              <h1 className="text-4xl font-extrabold mb-6 leading-tight text-foreground">
+                Edit Application
+              </h1>
 
-        <main className="container mx-auto px-4 md:px-8 pb-16">
-          <div className="max-w-4xl mx-auto bg-white p-6 md:p-10 shadow-lg">
-            <h1 className="text-4xl font-extrabold mb-6 leading-tight text-foreground">
-              Edit Application
-            </h1>
+              <ErrorSummary errors={errors} onClose={() => setErrors([])} />
 
-            <ErrorSummary errors={errors} onClose={() => setErrors([])} />
-
-            <ProgressBar currentSection={currentSection} totalSections={totalSections} />
+              <ProgressBar currentSection={currentSection} totalSections={totalSections} />
 
             <form onSubmit={(e) => e.preventDefault()} noValidate>
               {renderSection()}
@@ -689,6 +665,7 @@ const ApplicationDetail = () => {
           </div>
         </main>
       </div>
+      </AdminLayout>
     );
   }
 
@@ -696,9 +673,9 @@ const ApplicationDetail = () => {
   const formData = form.getValues();
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center flex-wrap gap-4">
+    <AdminLayout>
+      <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-8 -mx-4 -my-8">
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
           <Button variant="ghost" onClick={() => navigate('/admin/applications')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Applications
@@ -725,20 +702,17 @@ const ApplicationDetail = () => {
             </Button>
           </div>
         </div>
-      </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-lg p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">
-              {formData.title} {formData.firstName} {formData.middleNames} {formData.lastName}
-            </h1>
-            <p className="text-muted-foreground">
-              Submitted on {format(new Date(dbApplication.created_at), "MMMM dd, yyyy 'at' HH:mm")}
-            </p>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">
+            {formData.title} {formData.firstName} {formData.middleNames} {formData.lastName}
+          </h1>
+          <p className="text-muted-foreground">
+            Submitted on {format(new Date(dbApplication.created_at), "MMMM dd, yyyy 'at' HH:mm")}
+          </p>
+        </div>
 
-          <div className="space-y-8">
+        <div className="space-y-8">
             {/* Section 1: Personal Details */}
             <section className="border-l-4 border-primary pl-6">
               <h2 className="text-2xl font-bold mb-4">1. Personal Details</h2>
@@ -1453,9 +1427,8 @@ const ApplicationDetail = () => {
             </section>
           </div>
         </div>
-      </main>
-    </div>
-  );
-};
+      </AdminLayout>
+    );
+  };
 
-export default ApplicationDetail;
+  export default ApplicationDetail;
