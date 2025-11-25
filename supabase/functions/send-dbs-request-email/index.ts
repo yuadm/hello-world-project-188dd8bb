@@ -14,7 +14,10 @@ const corsHeaders = {
 interface DBSRequestData {
   memberId: string;
   memberEmail: string;
-  applicantName: string;
+  applicantName?: string;
+  employeeName?: string;
+  employeeId?: string;
+  isEmployee?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -23,26 +26,31 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { memberId, memberEmail, applicantName }: DBSRequestData = await req.json();
+    const { memberId, memberEmail, applicantName, employeeName, employeeId, isEmployee }: DBSRequestData = await req.json();
     
-    console.log("Sending DBS request for member:", memberId);
+    console.log("Sending DBS request for member:", memberId, "isEmployee:", isEmployee);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Determine which table to use
+    const tableName = isEmployee ? "employee_household_members" : "household_member_dbs_tracking";
+    const contextName = isEmployee ? employeeName : applicantName;
+
     // Get member details
     const { data: memberData, error: memberError } = await supabase
-      .from("household_member_dbs_tracking")
+      .from(tableName)
       .select("*")
       .eq("id", memberId)
       .single();
 
     if (memberError || !memberData) {
+      console.error("Member not found:", memberError);
       throw new Error("Member not found");
     }
 
     // Update member tracking - mark DBS as requested
     const { error: updateError } = await supabase
-      .from("household_member_dbs_tracking")
+      .from(tableName)
       .update({
         dbs_status: "requested",
         dbs_request_date: new Date().toISOString(),
@@ -76,14 +84,14 @@ const handler = async (req: Request): Promise<Response> => {
       body: JSON.stringify({
         sender: { 
           name: "Childminder Registration", 
-          email: Deno.env.get("BREVO_SENDER_EMAIL") || "noreply@yourdomain.com"
+          email: "yuadm3@gmail.com"
         },
         to: [{ email: memberEmail, name: memberData.full_name }],
         subject: "DBS Check Required - Action Needed",
         htmlContent: `
           <h1>DBS Check Required</h1>
           <p>Dear ${memberData.full_name},</p>
-          <p>${applicantName} has applied to become a registered childminder. As an adult member of their household, we need to conduct a DBS (Disclosure and Barring Service) check for you.</p>
+          <p>${contextName} ${isEmployee ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As an adult member of their household, we need to conduct a DBS (Disclosure and Barring Service) check for you.</p>
           
           <p><strong>What you need to do:</strong></p>
           <ul>
@@ -95,7 +103,7 @@ const handler = async (req: Request): Promise<Response> => {
           <p><strong>Important:</strong> The childminder registration cannot proceed until all required DBS checks are completed.</p>
 
           <p>If you have any questions or need to schedule your DBS check, please contact:</p>
-          <p>Email: ${Deno.env.get("BREVO_SENDER_EMAIL") || "registration@yourdomain.com"}</p>
+          <p>Email: yuadm3@gmail.com</p>
 
           <p>Best regards,<br>Childminder Registration Team</p>
         `,
