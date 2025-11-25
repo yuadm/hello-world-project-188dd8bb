@@ -18,6 +18,7 @@ interface DBSRequestData {
   employeeName?: string;
   employeeId?: string;
   isEmployee?: boolean;
+  isApplicant?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -26,13 +27,64 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { memberId, memberEmail, applicantName, employeeName, employeeId, isEmployee }: DBSRequestData = await req.json();
+    const { memberId, memberEmail, applicantName, employeeName, employeeId, isEmployee, isApplicant }: DBSRequestData = await req.json();
     
-    console.log("Sending DBS request for member:", memberId, "isEmployee:", isEmployee);
+    console.log("Sending DBS request for member:", memberId, "isEmployee:", isEmployee, "isApplicant:", isApplicant);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Determine which table to use
+    // If this is an applicant DBS request, skip member lookup and just send email
+    if (isApplicant) {
+      const emailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": brevoApiKey!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { 
+            name: "Childminder Registration", 
+            email: "yuadm3@gmail.com"
+          },
+          to: [{ email: memberEmail, name: applicantName }],
+          subject: "DBS Check Required - Action Needed",
+          htmlContent: `
+            <h1>DBS Check Required</h1>
+            <p>Dear ${applicantName},</p>
+            <p>As part of your childminder registration application, we need you to complete an Enhanced DBS (Disclosure and Barring Service) check.</p>
+            
+            <p><strong>What you need to do:</strong></p>
+            <ul>
+              <li>Please contact the registration team to arrange your DBS check</li>
+              <li>You will need to provide identification documents</li>
+              <li>The process typically takes 2-4 weeks</li>
+            </ul>
+
+            <p><strong>Important:</strong> Your registration cannot proceed until your DBS check is completed.</p>
+
+            <p>If you have any questions or need to schedule your DBS check, please contact:</p>
+            <p>Email: yuadm3@gmail.com</p>
+
+            <p>Best regards,<br>Childminder Registration Team</p>
+          `,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        console.error("Failed to send applicant DBS request email");
+        throw new Error("Failed to send email");
+      }
+
+      return new Response(JSON.stringify({ 
+        success: true,
+        message: "Applicant DBS request sent successfully"
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Determine which table to use for household members
     const tableName = isEmployee ? "employee_household_members" : "household_member_dbs_tracking";
     const contextName = isEmployee ? employeeName : applicantName;
 

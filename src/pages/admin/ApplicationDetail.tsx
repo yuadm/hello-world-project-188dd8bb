@@ -31,6 +31,7 @@ import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
 import { getValidatorForSection } from "@/lib/formValidation";
 import { DBSComplianceSection } from "@/components/admin/DBSComplianceSection";
+import { RequestApplicantDBSModal } from "@/components/admin/RequestApplicantDBSModal";
 import AdminLayout from "@/components/admin/AdminLayout";
 
 interface DBApplication {
@@ -131,6 +132,7 @@ const ApplicationDetail = () => {
   const [updating, setUpdating] = useState(false);
   const [dbApplication, setDbApplication] = useState<DBApplication | null>(null);
   const [existingEmployeeId, setExistingEmployeeId] = useState<string | null>(null);
+  const [isApplicantDBSModalOpen, setIsApplicantDBSModalOpen] = useState(false);
   const totalSections = 9;
 
   const form = useForm<Partial<ChildminderApplication>>({
@@ -1270,9 +1272,50 @@ const ApplicationDetail = () => {
               </dl>
             </section>
 
+            {/* Section 7a: Applicant DBS Check */}
+            <section className="border-l-4 border-primary pl-6 bg-primary/5 p-6 rounded-r">
+              <h2 className="text-2xl font-bold mb-4">Applicant DBS Check</h2>
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground">Applicant Name</dt>
+                        <dd className="mt-1 font-medium">{`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+                        <dd className="mt-1">{dbApplication?.email || "N/A"}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground">Has DBS Certificate</dt>
+                        <dd className="mt-1">{dbApplication?.has_dbs || "N/A"}</dd>
+                      </div>
+                      {dbApplication?.has_dbs === "Yes" && dbApplication?.dbs_number && (
+                        <div>
+                          <dt className="text-sm font-medium text-muted-foreground">DBS Number</dt>
+                          <dd className="mt-1">{dbApplication.dbs_number}</dd>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => setIsApplicantDBSModalOpen(true)}
+                    variant="default"
+                    className="flex-shrink-0"
+                  >
+                    Request Applicant DBS
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Send a DBS check request directly to the applicant. They will receive an email with instructions.
+                </p>
+              </div>
+            </section>
+
             {/* Section 7b: DBS Compliance Tracking */}
             <section className="border-l-4 border-blue-500 pl-6 bg-blue-50/50 dark:bg-blue-950/20 p-6 rounded-r">
-              <h2 className="text-2xl font-bold mb-4">DBS Compliance Tracking</h2>
+              <h2 className="text-2xl font-bold mb-4">Household Member DBS Compliance</h2>
               <DBSComplianceSection
                 applicationId={id!}
                 applicantEmail={dbApplication?.email || ""}
@@ -1511,6 +1554,15 @@ const ApplicationDetail = () => {
             </section>
           </div>
         </div>
+
+        <RequestApplicantDBSModal
+          open={isApplicantDBSModalOpen}
+          onOpenChange={setIsApplicantDBSModalOpen}
+          applicationId={id!}
+          applicantName={`${dbApplication?.first_name || ""} ${dbApplication?.last_name || ""}`.trim()}
+          applicantEmail={dbApplication?.email || ""}
+          onSuccess={fetchApplication}
+        />
       </AdminLayout>
     );
   };
