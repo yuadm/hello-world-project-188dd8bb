@@ -3,6 +3,9 @@ project_id = "pnslbftwceqremqsfylk"
 [functions.lookup-addresses]
 verify_jwt = false
 
+[functions.send-household-form-email]
+verify_jwt = false
+
 [functions.send-dbs-request-email]
 verify_jwt = false
 

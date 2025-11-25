@@ -72,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error("Error creating form record:", formError);
     }
 
-    const formUrl = `${Deno.env.get("SUPABASE_URL")?.replace("https://", "https://")}/household-form?token=${formToken}`;
+    const formUrl = `https://childminderpro.vercel.app/household-form?token=${formToken}`;
 
     // Send email to household member
     const memberEmailResponse = await fetch("https://api.brevo.com/v3/smtp/email", {
@@ -115,8 +115,10 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     if (!memberEmailResponse.ok) {
-      console.error("Failed to send household member email");
-      throw new Error("Failed to send email to household member");
+      const errorText = await memberEmailResponse.text();
+      console.error("Brevo API error status:", memberEmailResponse.status);
+      console.error("Brevo API error response:", errorText);
+      throw new Error(`Failed to send email to household member: ${errorText}`);
     }
 
     // Send notification to applicant
