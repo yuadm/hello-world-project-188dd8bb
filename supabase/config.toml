@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.approve-and-convert-to-employee]
 verify_jwt = false
+
+[functions.check-all-16th-birthdays]
+verify_jwt = false
