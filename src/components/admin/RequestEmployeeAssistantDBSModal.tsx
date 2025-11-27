@@ -14,6 +14,7 @@ interface EmployeeAssistant {
   dbs_status: string;
   dbs_certificate_number: string | null;
   dbs_certificate_date: string | null;
+  email: string | null;
 }
 
 interface RequestEmployeeAssistantDBSModalProps {
@@ -45,7 +46,7 @@ export const RequestEmployeeAssistantDBSModal = ({
 
     try {
       const updateData: any = {
-        dbs_status: formData.dbs_status,
+        dbs_status: formData.dbs_certificate_date ? "received" : "requested",
         dbs_request_date: new Date().toISOString(),
       };
 
@@ -55,7 +56,6 @@ export const RequestEmployeeAssistantDBSModal = ({
 
       if (formData.dbs_certificate_date) {
         updateData.dbs_certificate_date = formData.dbs_certificate_date;
-        updateData.dbs_status = "received";
       }
 
       const { error } = await supabase
@@ -65,9 +65,24 @@ export const RequestEmployeeAssistantDBSModal = ({
 
       if (error) throw error;
 
+      // Send DBS request email if no certificate date is provided
+      if (!formData.dbs_certificate_date && assistant.email) {
+        const { error: emailError } = await supabase.functions.invoke('send-dbs-request-email', {
+          body: {
+            memberId: assistant.id,
+            memberEmail: assistant.email,
+            isAssistant: true,
+          },
+        });
+
+        if (emailError) {
+          console.error("Failed to send DBS request email:", emailError);
+        }
+      }
+
       toast({
         title: "Success",
-        description: `DBS ${formData.dbs_certificate_date ? 'recorded' : 'requested'} for ${assistant.first_name} ${assistant.last_name}`,
+        description: `DBS ${formData.dbs_certificate_date ? 'certificate recorded' : 'request sent'} for ${assistant.first_name} ${assistant.last_name}`,
       });
 
       onSuccess();
