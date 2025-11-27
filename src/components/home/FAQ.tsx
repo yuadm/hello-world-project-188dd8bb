@@ -19,10 +19,6 @@ const faqs = [
     answer: "Absolutely. We provide data import tools and dedicated support to help you migrate your existing childminder records, documents, and compliance data smoothly."
   },
   {
-    question: "What support do you offer?",
-    answer: "All plans include email support. Professional and Enterprise plans also include priority phone support. Enterprise customers get a dedicated account manager."
-  },
-  {
     question: "How secure is my data?",
     answer: "Security is our top priority. We use bank-level encryption, regular security audits, and comply with GDPR. All data is stored in secure UK-based servers."
   },
