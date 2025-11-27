@@ -328,6 +328,16 @@ export const EmployeeAssistantComplianceSection = ({
                     </div>
                   </div>
 
+                  {assistant.form_sent_date && (
+                    <div className="text-sm mb-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">
+                          {assistant.reminder_count} sent, Last: {format(new Date(assistant.last_reminder_date || assistant.form_sent_date), "d'd ago'")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2 flex-wrap">
                     <Button
                       variant="outline"
