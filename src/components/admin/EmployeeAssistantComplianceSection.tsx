@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Send, Download, FileText, Trash2, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { pdf } from "@react-pdf/renderer";
 import { AddEditEmployeeAssistantModal } from "./AddEditEmployeeAssistantModal";
 import { SendEmployeeAssistantFormModal } from "./SendEmployeeAssistantFormModal";
 import { RequestEmployeeAssistantDBSModal } from "./RequestEmployeeAssistantDBSModal";
+import { AssistantFormPDF } from "./AssistantFormPDF";
 import { getDBSStatusConfig } from "@/lib/employeeHelpers";
 import {
   AlertDialog,
@@ -149,22 +151,72 @@ export const EmployeeAssistantComplianceSection = ({
     if (!assistant.form_token) return;
 
     try {
-      const response = await supabase.functions.invoke('generate-assistant-form-pdf', {
-        body: { formToken: assistant.form_token }
-      });
+      const { data: formData, error } = await supabase
+        .from("employee_assistant_forms")
+        .select("*")
+        .eq("employee_assistant_id", assistant.id)
+        .eq("status", "submitted")
+        .maybeSingle();
 
-      if (response.error) throw response.error;
+      if (error) throw error;
+      
+      if (!formData) {
+        toast({
+          title: "Error",
+          description: "No completed form found",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      // Transform address data for PDF component
+      const currentAddress = formData.current_address as any;
+      const addressHistory = formData.address_history as any;
+      
+      const transformedFormData = {
+        ...formData,
+        current_address: currentAddress ? {
+          line1: currentAddress.address_line_1,
+          line2: currentAddress.address_line_2,
+          town: currentAddress.town,
+          postcode: currentAddress.postcode,
+          moveIn: currentAddress.move_in_date,
+        } : null,
+        address_history: addressHistory && Array.isArray(addressHistory)
+          ? addressHistory.map((addr: any) => ({
+              address: `${addr.address_line_1}${addr.address_line_2 ? ', ' + addr.address_line_2 : ''}, ${addr.town}, ${addr.postcode}`,
+              moveIn: addr.move_in_date,
+              moveOut: addr.move_out_date,
+            }))
+          : [],
+      };
+
+      // Generate PDF client-side
+      const blob = await pdf(
+        <AssistantFormPDF
+          formData={transformedFormData}
+          assistantName={`${assistant.first_name} ${assistant.last_name}`}
+          assistantRole={assistant.role}
+          applicantName={employeeName}
+        />
+      ).toBlob();
+
+      // Download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       link.href = url;
       link.download = `assistant-form-${assistant.first_name}-${assistant.last_name}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "PDF downloaded successfully",
+      });
     } catch (error: any) {
+      console.error("PDF download error:", error);
       toast({
         title: "Error",
         description: "Failed to download PDF",
