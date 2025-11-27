@@ -52,7 +52,7 @@ const Hero = () => {
                 </Button>
               </NavLink>
               <NavLink to="/apply">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                <Button size="lg" variant="secondary" className="w-full sm:w-auto">
                   Apply as Childminder
                 </Button>
               </NavLink>
