@@ -36,13 +36,52 @@ serve(async (req) => {
     if (assistantError) throw assistantError;
     if (!assistant) throw new Error("Invalid form token");
 
-    // Update form with submitted status
+    // Update form with submitted status - map camelCase to snake_case
     const { error: formError } = await supabase
       .from("assistant_forms")
       .update({
         status: "submitted",
         submitted_at: new Date().toISOString(),
-        ...formData,
+        title: formData.title,
+        first_name: formData.firstName,
+        middle_names: formData.middleNames,
+        last_name: formData.lastName,
+        previous_names: formData.previousNames,
+        date_of_birth: formData.dob,
+        birth_town: formData.birthTown,
+        sex: formData.sex,
+        ni_number: formData.niNumber,
+        current_address: {
+          address_line_1: formData.homeAddressLine1,
+          address_line_2: formData.homeAddressLine2,
+          town: formData.homeTown,
+          postcode: formData.homePostcode,
+          move_in_date: formData.homeMoveIn
+        },
+        address_history: formData.addressHistory,
+        lived_outside_uk: formData.livedOutsideUK,
+        employment_history: formData.employmentHistory,
+        employment_gaps: formData.employmentGaps,
+        pfa_completed: formData.pfaCompleted,
+        safeguarding_completed: formData.safeguardingCompleted,
+        previous_registration: formData.prevReg,
+        previous_registration_details: formData.prevRegInfo,
+        has_dbs: formData.hasDBS,
+        dbs_number: formData.dbsNumber,
+        dbs_update_service: formData.dbsUpdate,
+        criminal_history: formData.offenceHistory,
+        criminal_history_details: formData.offenceDetails,
+        disqualified: formData.disqualified,
+        social_services: formData.socialServices,
+        social_services_details: formData.socialServicesInfo,
+        health_conditions: formData.healthCondition,
+        health_conditions_details: formData.healthConditionDetails,
+        smoker: formData.smoker,
+        consent_checks: formData.consentChecks,
+        declaration_truth: formData.declarationTruth,
+        declaration_notify: formData.declarationNotify,
+        signature_name: formData.signatureFullName,
+        signature_date: formData.signatureDate
       })
       .eq("form_token", token);
 
