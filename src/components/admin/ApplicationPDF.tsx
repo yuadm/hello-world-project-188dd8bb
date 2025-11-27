@@ -475,6 +475,35 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
             <Text style={styles.dataLabel}>Overnight Care</Text>
             <Text style={styles.dataValue}>{application.overnightCare || "N/A"}</Text>
           </View>
+
+          {application.assistants && application.assistants.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.subsectionTitle}>Assistants & Co-childminders</Text>
+              {application.assistants.map((person, index) => (
+                <View key={index} style={styles.card}>
+                  <Text style={styles.cardTitle}>{person.firstName} {person.lastName}</Text>
+                  <View style={styles.qualGrid}>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Role</Text>
+                      <Text style={styles.cardText}>{person.role || "N/A"}</Text>
+                    </View>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Date of Birth</Text>
+                      <Text style={styles.cardText}>{formatDate(person.dob)}</Text>
+                    </View>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Email</Text>
+                      <Text style={styles.cardText}>{person.email || "N/A"}</Text>
+                    </View>
+                    <View style={styles.qualGridItem}>
+                      <Text style={styles.cardSubtitle}>Mobile</Text>
+                      <Text style={styles.cardText}>{person.phone || "N/A"}</Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Section 5: Qualifications & Training */}
@@ -693,38 +722,9 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
           </View>
         </View>
 
-        {/* Section 7: People Connected */}
+        {/* Section 7: Household Members */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>7. People in Household & Connected to Service</Text>
-
-          {application.assistants && application.assistants.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.subsectionTitle}>Assistants & Co-childminders</Text>
-              {application.assistants.map((person, index) => (
-                <View key={index} style={styles.card}>
-                  <Text style={styles.cardTitle}>{person.firstName} {person.lastName}</Text>
-                  <View style={styles.qualGrid}>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Role</Text>
-                      <Text style={styles.cardText}>{person.role || "N/A"}</Text>
-                    </View>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Date of Birth</Text>
-                      <Text style={styles.cardText}>{formatDate(person.dob)}</Text>
-                    </View>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Email</Text>
-                      <Text style={styles.cardText}>{person.email || "N/A"}</Text>
-                    </View>
-                    <View style={styles.qualGridItem}>
-                      <Text style={styles.cardSubtitle}>Mobile</Text>
-                      <Text style={styles.cardText}>{person.phone || "N/A"}</Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+          <Text style={styles.sectionTitle}>7. Household Members</Text>
 
           <View style={styles.dataRow}>
             <Text style={styles.dataLabel}>Adults in Home</Text>

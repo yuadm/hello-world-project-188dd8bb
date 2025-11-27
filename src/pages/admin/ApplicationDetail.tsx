@@ -1025,10 +1025,28 @@ const ApplicationDetail = () => {
                   <dd className="mt-1">{(formData as any).workWithOthers || "N/A"}</dd>
                 </div>
                 {(formData as any).workWithOthers === "Yes" && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Number of Assistants</dt>
-                    <dd className="mt-1">{(formData as any).numberOfAssistants || 0}</dd>
-                  </div>
+                  <>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">Number of Assistants</dt>
+                      <dd className="mt-1">{(formData as any).numberOfAssistants || 0}</dd>
+                    </div>
+                    {formData.assistants && formData.assistants.length > 0 && (
+                      <div>
+                        <dt className="text-sm font-medium text-muted-foreground">Assistants & Co-childminders</dt>
+                        <dd className="mt-1 space-y-2">
+                          {formData.assistants.map((person: any, idx: number) => (
+                            <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
+                              <div className="font-medium">{person.firstName} {person.lastName}</div>
+                              <div className="text-muted-foreground">Role: {person.role || "N/A"}</div>
+                              <div className="text-muted-foreground">DOB: {person.dob || "N/A"}</div>
+                              <div className="text-muted-foreground">Email: {person.email || "N/A"}</div>
+                              <div className="text-muted-foreground">Phone: {person.phone || "N/A"}</div>
+                            </div>
+                          ))}
+                        </dd>
+                      </div>
+                    )}
+                  </>
                 )}
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">Proposed Capacity</dt>
@@ -1253,24 +1271,10 @@ const ApplicationDetail = () => {
               </dl>
             </section>
 
-            {/* Section 7: People Connected */}
+            {/* Section 7: Household Members */}
             <section className="border-l-4 border-primary pl-6">
-              <h2 className="text-2xl font-bold mb-4">7. People Connected to Application</h2>
+              <h2 className="text-2xl font-bold mb-4">7. Household Members</h2>
               <dl className="space-y-4">
-                {formData.assistants && formData.assistants.length > 0 && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Assistants</dt>
-                    <dd className="mt-1 space-y-2">
-                      {formData.assistants.map((person: any, idx: number) => (
-                        <div key={idx} className="text-sm bg-muted/30 p-3 rounded">
-                          <div className="font-medium">{person.fullName}</div>
-                          <div className="text-muted-foreground">Relationship: {person.relationship}</div>
-                          <div className="text-muted-foreground">DOB: {person.dob}</div>
-                        </div>
-                      ))}
-                    </dd>
-                  </div>
-                )}
                 {formData.adults && formData.adults.length > 0 && (
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">Adults in Household</dt>
