@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Edit, Save, X, ArrowRight, Download } from "lucide-react";
+import { ArrowLeft, Edit, Save, X, ArrowRight, Download, CheckCircle, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";
@@ -1353,8 +1353,18 @@ const ApplicationDetail = () => {
             </section>
 
             {/* Section 7b: DBS Compliance Tracking */}
-            <section className="border-l-4 border-blue-500 pl-6 bg-blue-50/50 dark:bg-blue-950/20 p-6 rounded-r">
-              <h2 className="text-2xl font-bold mb-4">Household Member DBS Compliance</h2>
+            <section className="border-l-4 border-primary pl-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold tracking-tight">Household Member DBS Compliance</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Track and manage DBS checks for household members
+                  </p>
+                </div>
+              </div>
               <DBSComplianceSection
                 applicationId={id!}
                 applicantEmail={dbApplication?.email || ""}
@@ -1363,8 +1373,18 @@ const ApplicationDetail = () => {
             </section>
 
             {/* Section 7c: Assistant & Co-childminder Compliance */}
-            <section className="border-l-4 border-purple-500 pl-6 bg-purple-50/50 dark:bg-purple-950/20 p-6 rounded-r mt-8">
-              <h2 className="text-2xl font-bold mb-4">Assistant & Co-childminder Compliance</h2>
+            <section className="border-l-4 border-primary pl-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold tracking-tight">Assistant & Co-childminder Compliance</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Track and manage DBS checks for assistants and co-childminders
+                  </p>
+                </div>
+              </div>
               <AssistantComplianceSection
                 applicationId={id!}
                 applicantEmail={dbApplication?.email || ""}
