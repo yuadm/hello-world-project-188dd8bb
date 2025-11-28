@@ -8,7 +8,8 @@ import { pdf } from '@react-pdf/renderer';
 import { ApplicationPDF } from "@/components/admin/ApplicationPDF";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { ApplicationHero } from "@/components/admin/application-detail/ApplicationHero";
-import { ComplianceHealthSummary } from "@/components/admin/application-detail/ComplianceHealthSummary";
+import { HouseholdComplianceCard } from "@/components/admin/application-detail/HouseholdComplianceCard";
+import { AssistantComplianceCard } from "@/components/admin/application-detail/AssistantComplianceCard";
 import { PersonalInfoCard } from "@/components/admin/application-detail/PersonalInfoCard";
 import { ServiceDetailsCard } from "@/components/admin/application-detail/ServiceDetailsCard";
 import { AddressCard } from "@/components/admin/application-detail/AddressCard";
@@ -219,10 +220,6 @@ const ApplicationDetailNew = () => {
   const references = dbApplication.applicant_references || {};
   const addressHistoryYears = Math.floor((dbApplication.address_history?.length || 0) * 0.5) + 2;
 
-  // Mock compliance data - in real implementation, fetch from compliance tables
-  const householdCompliance = { total: 3, compliant: 2, pending: 1, overdue: 0 };
-  const assistantCompliance = { total: 1, compliant: 1, pending: 0, overdue: 0 };
-
   return (
     <AdminLayout>
       <div className="p-6 space-y-6">
@@ -249,12 +246,19 @@ const ApplicationDetailNew = () => {
           onViewEmployee={() => navigate(`/admin/employees/${existingEmployeeId}`)}
         />
 
-        {/* Compliance Health Summary */}
-        <ComplianceHealthSummary
-          applicationId={id!}
-          householdCompliance={householdCompliance}
-          assistantCompliance={assistantCompliance}
-        />
+        {/* Compliance Management - Traffic Light Style */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <HouseholdComplianceCard
+            applicationId={id!}
+            applicantEmail={dbApplication.email}
+            applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+          />
+          <AssistantComplianceCard
+            applicationId={id!}
+            applicantEmail={dbApplication.email}
+            applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+          />
+        </div>
 
         {/* Main Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
