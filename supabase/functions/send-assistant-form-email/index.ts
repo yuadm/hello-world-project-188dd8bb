@@ -21,29 +21,27 @@ serve(async (req) => {
 
     console.log(`[send-assistant-form-email] Processing for assistant: ${assistantId}, isEmployee: ${isEmployee}`);
 
-    // Determine which table to query based on isEmployee flag
-    const tableName = isEmployee ? "employee_assistants" : "assistant_dbs_tracking";
-    const parentEmail = isEmployee ? employeeEmail : applicantEmail;
-    const parentName = isEmployee ? employeeName : applicantName;
-
-    // Get assistant details
+    // Get assistant details from unified table
     const { data: assistant, error: assistantError } = await supabase
-      .from(tableName)
+      .from("compliance_assistants")
       .select("*")
       .eq("id", assistantId)
       .single();
 
     if (assistantError) {
-      console.error(`[send-assistant-form-email] Error fetching assistant from ${tableName}:`, assistantError);
+      console.error(`[send-assistant-form-email] Error fetching assistant:`, assistantError);
       throw assistantError;
     }
+
+    const parentEmail = isEmployee ? employeeEmail : applicantEmail;
+    const parentName = isEmployee ? employeeName : applicantName;
 
     // Generate secure token
     const formToken = crypto.randomUUID();
 
-    // Update assistant with form token
+    // Update assistant with form token in unified table
     const { error: updateError } = await supabase
-      .from(tableName)
+      .from("compliance_assistants")
       .update({
         form_token: formToken,
         form_status: "sent",
@@ -55,49 +53,26 @@ serve(async (req) => {
       .eq("id", assistantId);
 
     if (updateError) {
-      console.error(`[send-assistant-form-email] Error updating ${tableName}:`, updateError);
+      console.error(`[send-assistant-form-email] Error updating assistant:`, updateError);
       throw updateError;
     }
 
-    // Create draft form record in the appropriate table
-    if (isEmployee) {
-      // For employee assistants, insert into employee_assistant_forms
-      const { error: formError } = await supabase
-        .from("employee_assistant_forms")
-        .insert({
-          employee_assistant_id: assistantId,
-          employee_id: assistant.employee_id,
-          form_token: formToken,
-          status: "draft",
-        });
+    // Create draft form record in unified forms table
+    const { error: formError } = await supabase
+      .from("compliance_assistant_forms")
+      .insert({
+        assistant_id: assistantId,
+        employee_id: isEmployee ? assistant.employee_id : null,
+        application_id: !isEmployee ? assistant.application_id : null,
+        form_token: formToken,
+        status: "draft",
+      });
 
-      if (formError) {
-        console.error("[send-assistant-form-email] Failed to create employee_assistant_forms record:", formError);
-        // Don't throw - continue with email sending
-      } else {
-        console.log("[send-assistant-form-email] Created employee_assistant_forms record successfully");
-      }
+    if (formError) {
+      console.error("[send-assistant-form-email] Failed to create form record:", formError);
+      // Don't throw - continue with email sending
     } else {
-      // For applicant assistants, get the application_id and insert into assistant_forms
-      const applicationId = assistant.application_id;
-      
-      if (applicationId) {
-        const { error: formError } = await supabase
-          .from("assistant_forms")
-          .insert({
-            assistant_id: assistantId,
-            application_id: applicationId,
-            form_token: formToken,
-            status: "draft",
-          });
-
-        if (formError) {
-          console.error("[send-assistant-form-email] Failed to create assistant_forms record:", formError);
-          // Don't throw - continue with email sending
-        } else {
-          console.log("[send-assistant-form-email] Created assistant_forms record successfully");
-        }
-      }
+      console.log("[send-assistant-form-email] Created compliance_assistant_forms record successfully");
     }
 
     // Send email to assistant via Brevo

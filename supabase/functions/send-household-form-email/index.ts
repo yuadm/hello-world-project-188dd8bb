@@ -15,8 +15,7 @@ interface SendFormRequest {
   memberEmail: string;
   applicantEmail: string;
   applicantName: string;
-  isEmployee?: boolean;
-  employeeId?: string;
+  parentType: 'application' | 'employee';
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,88 +24,57 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { memberId, memberEmail, applicantEmail, applicantName, isEmployee, employeeId }: SendFormRequest = await req.json();
+    const { memberId, memberEmail, applicantEmail, applicantName, parentType }: SendFormRequest = await req.json();
     
-    console.log("Sending household form email for member:", memberId, "isEmployee:", isEmployee);
+    console.log("Sending household form email for member:", memberId, "parentType:", parentType);
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    let memberData: any;
-    let parentId: string;
+    // Get member details from unified table
+    const { data: memberData, error: memberError } = await supabase
+      .from("compliance_household_members")
+      .select("*")
+      .eq("id", memberId)
+      .single();
 
-    // Get member details based on whether it's an employee or applicant
-    if (isEmployee && employeeId) {
-      const { data, error } = await supabase
-        .from("employee_household_members")
-        .select("*")
-        .eq("id", memberId)
-        .single();
-
-      if (error || !data) {
-        throw new Error("Employee household member not found");
-      }
-      memberData = data;
-      parentId = employeeId;
-    } else {
-      const { data, error } = await supabase
-        .from("household_member_dbs_tracking")
-        .select("*")
-        .eq("id", memberId)
-        .single();
-
-      if (error || !data) {
-        throw new Error("Applicant household member not found");
-      }
-      memberData = data;
-      parentId = memberData.application_id;
+    if (memberError || !memberData) {
+      throw new Error("Household member not found");
     }
+
+    const parentId = parentType === 'employee' ? memberData.employee_id : memberData.application_id;
 
     // Generate secure form token
     const formToken = crypto.randomUUID();
 
-    // Update member with form token
-    if (isEmployee) {
-      const { error: updateError } = await supabase
-        .from("employee_household_members")
-        .update({
-          form_token: formToken,
-          email: memberEmail,
-          last_contact_date: new Date().toISOString()
-        })
-        .eq("id", memberId);
+    // Update member with form token in unified table
+    const { error: updateError } = await supabase
+      .from("compliance_household_members")
+      .update({
+        form_token: formToken,
+        email: memberEmail,
+        last_contact_date: new Date().toISOString()
+      })
+      .eq("id", memberId);
 
-      if (updateError) {
-        console.error("Error updating employee member:", updateError);
-        throw updateError;
-      }
-    } else {
-      const { error: updateError } = await supabase
-        .from("household_member_dbs_tracking")
-        .update({
-          form_token: formToken,
-          email: memberEmail,
-          last_contact_date: new Date().toISOString()
-        })
-        .eq("id", memberId);
+    if (updateError) {
+      console.error("Error updating member:", updateError);
+      throw updateError;
+    }
 
-      if (updateError) {
-        console.error("Error updating applicant member:", updateError);
-        throw updateError;
-      }
+    // Create form record in unified forms table
+    const { error: formError } = await supabase
+      .from("compliance_household_forms")
+      .insert({
+        member_id: memberId,
+        application_id: parentType === 'application' ? parentId : null,
+        employee_id: parentType === 'employee' ? parentId : null,
+        form_token: formToken,
+        status: "draft"
+      });
 
-      // Create form record only for applicants (household_member_forms is for applicants)
-      const { error: formError } = await supabase
-        .from("household_member_forms")
-        .insert({
-          member_id: memberId,
-          application_id: parentId,
-          form_token: formToken,
-          status: "draft"
-        });
-
-      if (formError) {
-        console.error("Error creating form record:", formError);
-      }
+    if (formError) {
+      console.error("Error creating form record:", formError);
+      throw formError;
     }
 
     const formUrl = `https://childminderpro.vercel.app/household-form?token=${formToken}`;
@@ -128,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
         htmlContent: `
           <h1>Complete Your Suitability Check Form</h1>
           <p>Dear ${memberData.full_name},</p>
-          <p>${applicantName} ${isEmployee ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As you are a member of their household, we need to complete suitability checks on all adults.</p>
+          <p>${applicantName} ${parentType === 'employee' ? 'is a registered childminder' : 'has applied to become a registered childminder'}. As you are a member of their household, we need to complete suitability checks on all adults.</p>
           
           <p><strong>Please complete the CMA-H2 form using the link below:</strong></p>
           <p><a href="${formUrl}" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">Complete Form</a></p>

@@ -27,97 +27,58 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Try employee household members first
-    const { data: employeeData, error: employeeError } = await supabase
-      .from("employee_household_members")
+    // Get member data from unified table using form token
+    const { data: memberData, error: memberError } = await supabase
+      .from("compliance_household_members")
       .select(`
         *,
-        employees!inner(
-          id, first_name, last_name, email
-        )
+        childminder_applications(id, first_name, last_name, email),
+        employees(id, first_name, last_name, email)
       `)
       .eq("form_token", token)
       .maybeSingle();
 
-    let isEmployee = false;
-    let memberData: any;
-    let parentName: string;
-    let parentEmail: string;
+    if (!memberData) {
+      throw new Error("Invalid form token");
+    }
 
-    if (employeeData) {
-      // Handle employee household member
-      isEmployee = true;
-      memberData = employeeData;
-      parentName = `${employeeData.employees.first_name} ${employeeData.employees.last_name}`;
-      parentEmail = employeeData.employees.email;
+    const isEmployee = !!memberData.employee_id;
+    const parentInfo = isEmployee 
+      ? memberData.employees 
+      : memberData.childminder_applications;
+    
+    const parentName = `${parentInfo.first_name} ${parentInfo.last_name}`;
+    const parentEmail = parentInfo.email;
 
-      // Update employee household member tracking
-      const { error: updateMemberError } = await supabase
-        .from("employee_household_members")
-        .update({
-          response_received: true,
-          response_date: new Date().toISOString(),
-          application_submitted: true,
-          dbs_status: formData.hasDBS === "Yes" ? "received" : "requested",
-          dbs_certificate_number: formData.hasDBS === "Yes" ? formData.dbsNumber : null
-        })
-        .eq("id", employeeData.id);
+    // Update the form to submitted status in unified forms table
+    const { error: updateFormError } = await supabase
+      .from("compliance_household_forms")
+      .update({
+        status: "submitted",
+        submitted_at: new Date().toISOString()
+      })
+      .eq("form_token", token);
 
-      if (updateMemberError) {
-        console.error("Error updating employee member tracking:", updateMemberError);
-        throw updateMemberError;
-      }
-    } else {
-      // Try applicant household members
-      const { data: applicantData, error: applicantError } = await supabase
-        .from("household_member_dbs_tracking")
-        .select(`
-          *,
-          childminder_applications!inner(
-            id, first_name, last_name, email
-          )
-        `)
-        .eq("form_token", token)
-        .maybeSingle();
+    if (updateFormError) {
+      console.error("Error updating form status:", updateFormError);
+      throw updateFormError;
+    }
 
-      if (!applicantData) {
-        throw new Error("Invalid form token");
-      }
+    // Update member tracking in unified table
+    const { error: updateMemberError } = await supabase
+      .from("compliance_household_members")
+      .update({
+        response_received: true,
+        response_date: new Date().toISOString(),
+        application_submitted: true,
+        dbs_status: formData.hasDBS === "Yes" ? "received" : "requested",
+        dbs_certificate_number: formData.hasDBS === "Yes" ? formData.dbsNumber : null
+      })
+      .eq("id", memberData.id);
 
-      memberData = applicantData;
-      parentName = `${applicantData.childminder_applications.first_name} ${applicantData.childminder_applications.last_name}`;
-      parentEmail = applicantData.childminder_applications.email;
-
-      // Update the form to submitted status
-      const { error: updateFormError } = await supabase
-        .from("household_member_forms")
-        .update({
-          status: "submitted",
-          submitted_at: new Date().toISOString()
-        })
-        .eq("form_token", token);
-
-      if (updateFormError) {
-        console.error("Error updating form status:", updateFormError);
-        throw updateFormError;
-      }
-
-      // Update member tracking
-      const { error: updateMemberError } = await supabase
-        .from("household_member_dbs_tracking")
-        .update({
-          response_received: true,
-          response_date: new Date().toISOString(),
-          application_submitted: true,
-          dbs_status: formData.hasDBS === "Yes" ? "received" : "requested",
-          dbs_certificate_number: formData.hasDBS === "Yes" ? formData.dbsNumber : null
-        })
-        .eq("id", applicantData.id);
-
-      if (updateMemberError) {
-        console.error("Error updating member tracking:", updateMemberError);
-        throw updateMemberError;
-      }
+    if (updateMemberError) {
+      console.error("Error updating member tracking:", updateMemberError);
+      throw updateMemberError;
     }
 
     // Send confirmation email to household member

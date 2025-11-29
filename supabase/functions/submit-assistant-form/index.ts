@@ -17,9 +17,29 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const { token, formData, isEmployee } = await req.json();
+    const { token, formData } = await req.json();
 
-    console.log(`[submit-assistant-form] Processing submission for token: ${token}, isEmployee: ${isEmployee}`);
+    console.log(`[submit-assistant-form] Processing submission for token: ${token}`);
+
+    // Get assistant data from unified table using form token
+    const { data: assistant, error: assistantError } = await supabase
+      .from("compliance_assistants")
+      .select(`
+        *,
+        childminder_applications(id, first_name, last_name, email),
+        employees(id, first_name, last_name, email)
+      `)
+      .eq("form_token", token)
+      .single();
+
+    if (assistantError) {
+      console.error("[submit-assistant-form] Error fetching assistant:", assistantError);
+      throw assistantError;
+    }
+    if (!assistant) throw new Error("Invalid form token");
+
+    const isEmployee = !!assistant.employee_id;
+    const parent = isEmployee ? assistant.employees : assistant.childminder_applications;
 
     // Build form update payload
     const formUpdatePayload = {
@@ -67,114 +87,38 @@ serve(async (req) => {
       signature_date: formData.signatureDate
     };
 
-    if (isEmployee) {
-      // EMPLOYEE ASSISTANT FLOW
-      console.log("[submit-assistant-form] Processing employee assistant flow");
+    // Update unified form table
+    const { error: formError } = await supabase
+      .from("compliance_assistant_forms")
+      .update(formUpdatePayload)
+      .eq("form_token", token);
 
-      // Get employee assistant details
-      const { data: assistant, error: assistantError } = await supabase
-        .from("employee_assistants")
-        .select(`
-          *,
-          employees!inner(id, first_name, last_name, email)
-        `)
-        .eq("form_token", token)
-        .single();
-
-      if (assistantError) {
-        console.error("[submit-assistant-form] Error fetching employee assistant:", assistantError);
-        throw assistantError;
-      }
-      if (!assistant) throw new Error("Invalid form token");
-
-      // Update employee_assistant_forms
-      const { error: formError } = await supabase
-        .from("employee_assistant_forms")
-        .update(formUpdatePayload)
-        .eq("form_token", token);
-
-      if (formError) {
-        console.error("[submit-assistant-form] Error updating employee_assistant_forms:", formError);
-        throw formError;
-      }
-
-      // Update employee_assistants tracking record
-      const { error: trackingError } = await supabase
-        .from("employee_assistants")
-        .update({
-          form_status: "submitted",
-          form_submitted_date: new Date().toISOString(),
-        })
-        .eq("id", assistant.id);
-
-      if (trackingError) {
-        console.error("[submit-assistant-form] Error updating employee_assistants:", trackingError);
-        throw trackingError;
-      }
-
-      // Send confirmation email to assistant
-      await sendConfirmationEmail(assistant, assistant.employees, "employee");
-
-      // Send notification to employee
-      await sendParentNotification(assistant, assistant.employees, "employee");
-
-      console.log(`[submit-assistant-form] Employee assistant form submitted successfully for ${assistant.first_name} ${assistant.last_name}`);
-
-    } else {
-      // APPLICANT ASSISTANT FLOW
-      console.log("[submit-assistant-form] Processing applicant assistant flow");
-
-      // Get assistant and application details
-      const { data: assistant, error: assistantError } = await supabase
-        .from("assistant_dbs_tracking")
-        .select(`
-          *,
-          childminder_applications!inner(
-            id, first_name, last_name, email
-          )
-        `)
-        .eq("form_token", token)
-        .single();
-
-      if (assistantError) {
-        console.error("[submit-assistant-form] Error fetching applicant assistant:", assistantError);
-        throw assistantError;
-      }
-      if (!assistant) throw new Error("Invalid form token");
-
-      // Update assistant_forms
-      const { error: formError } = await supabase
-        .from("assistant_forms")
-        .update(formUpdatePayload)
-        .eq("form_token", token);
-
-      if (formError) {
-        console.error("[submit-assistant-form] Error updating assistant_forms:", formError);
-        throw formError;
-      }
-
-      // Update assistant_dbs_tracking record
-      const { error: trackingError } = await supabase
-        .from("assistant_dbs_tracking")
-        .update({
-          form_status: "submitted",
-          form_submitted_date: new Date().toISOString(),
-        })
-        .eq("id", assistant.id);
-
-      if (trackingError) {
-        console.error("[submit-assistant-form] Error updating assistant_dbs_tracking:", trackingError);
-        throw trackingError;
-      }
-
-      // Send confirmation email to assistant
-      await sendConfirmationEmail(assistant, assistant.childminder_applications, "applicant");
-
-      // Send notification to applicant
-      await sendParentNotification(assistant, assistant.childminder_applications, "applicant");
-
-      console.log(`[submit-assistant-form] Applicant assistant form submitted successfully for ${assistant.first_name} ${assistant.last_name}`);
+    if (formError) {
+      console.error("[submit-assistant-form] Error updating compliance_assistant_forms:", formError);
+      throw formError;
     }
+
+    // Update unified tracking table
+    const { error: trackingError } = await supabase
+      .from("compliance_assistants")
+      .update({
+        form_status: "submitted",
+        form_submitted_date: new Date().toISOString(),
+      })
+      .eq("id", assistant.id);
+
+    if (trackingError) {
+      console.error("[submit-assistant-form] Error updating compliance_assistants:", trackingError);
+      throw trackingError;
+    }
+
+    // Send confirmation email to assistant
+    await sendConfirmationEmail(assistant, parent);
+
+    // Send notification to parent
+    await sendParentNotification(assistant, parent, isEmployee);
+
+    console.log(`[submit-assistant-form] Assistant form submitted successfully for ${assistant.first_name} ${assistant.last_name}`);
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -189,7 +133,7 @@ serve(async (req) => {
   }
 });
 
-async function sendConfirmationEmail(assistant: any, parent: any, type: "employee" | "applicant") {
+async function sendConfirmationEmail(assistant: any, parent: any) {
   try {
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -241,7 +185,7 @@ async function sendConfirmationEmail(assistant: any, parent: any, type: "employe
   }
 }
 
-async function sendParentNotification(assistant: any, parent: any, type: "employee" | "applicant") {
+async function sendParentNotification(assistant: any, parent: any, isEmployee: boolean) {
   try {
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -276,7 +220,7 @@ async function sendParentNotification(assistant: any, parent: any, type: "employ
                 <p style="margin: 5px 0;"><strong>Submitted:</strong> ${new Date().toLocaleDateString()}</p>
               </div>
               
-              <p>You can now view and download the completed form from your admin dashboard.</p>
+              <p>You can now view and download the completed form from your ${isEmployee ? 'employee' : 'admin'} dashboard.</p>
               
               <p style="margin-top: 30px;">
                 <strong>Ready Kids Registration Team</strong>
