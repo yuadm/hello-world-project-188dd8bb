@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { AppleCard } from "@/components/admin/AppleCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Download, FileCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, Download, FileCheck, ChevronDown, ChevronUp, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TrafficLightIndicator } from "@/components/admin/application-detail/TrafficLightIndicator";
@@ -333,57 +334,53 @@ export const UnifiedAssistantComplianceCard = ({
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => {
-                        setSelectedAssistant(assistant);
-                        setShowSendFormModal(true);
-                      }}
-                    >
-                      <Mail className="h-4 w-4" />
-                      Send Form
-                    </Button>
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <MoreVertical className="h-4 w-4" />
+                          Actions
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedAssistant(assistant);
+                            setShowSendFormModal(true);
+                          }}
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Send Compliance Form
+                        </DropdownMenuItem>
 
-                    {hasForm && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => handleDownloadPDF(assistant)}
-                      >
-                        <Download className="h-4 w-4" />
-                        Download PDF
-                      </Button>
-                    )}
+                        {hasForm && (
+                          <DropdownMenuItem onClick={() => handleDownloadPDF(assistant)}>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download Submitted Form
+                          </DropdownMenuItem>
+                        )}
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => {
-                        setSelectedAssistant(assistant);
-                        setShowDBSModal(true);
-                      }}
-                    >
-                      <Mail className="h-4 w-4" />
-                      Request DBS
-                    </Button>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedAssistant(assistant);
+                            setShowDBSModal(true);
+                          }}
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Request DBS Check
+                        </DropdownMenuItem>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => {
-                        setSelectedAssistant(assistant);
-                        setShowCertModal(true);
-                      }}
-                    >
-                      <FileCheck className="h-4 w-4" />
-                      Record Certificate
-                    </Button>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedAssistant(assistant);
+                            setShowCertModal(true);
+                          }}
+                        >
+                          <FileCheck className="h-4 w-4 mr-2" />
+                          Record DBS Certificate
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               );

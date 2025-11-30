@@ -18,8 +18,6 @@ import { QuickStatsCard } from "@/components/admin/application-detail/QuickStats
 import { QualificationsCard } from "@/components/admin/application-detail/QualificationsCard";
 import { DBSVettingCard } from "@/components/admin/application-detail/DBSVettingCard";
 import { ReferencesCard } from "@/components/admin/application-detail/ReferencesCard";
-import { HouseholdMembersCard } from "@/components/admin/application-detail/HouseholdMembersCard";
-import { AssistantsCard } from "@/components/admin/application-detail/AssistantsCard";
 import { Shimmer } from "@/components/ui/shimmer";
 
 interface DBApplication {
@@ -247,7 +245,7 @@ const ApplicationDetailNew = () => {
         />
 
         {/* Compliance Management - Traffic Light Style */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <UnifiedHouseholdComplianceCard
             parentId={id!}
             parentType="application"
@@ -330,13 +328,6 @@ const ApplicationDetailNew = () => {
             reference2Contact={references.reference2?.contact}
           />
 
-          {/* Row 4 */}
-          <HouseholdMembersCard
-            adults={peopleInHousehold.adults || []}
-            children={peopleInHousehold.children || []}
-          />
-
-          <AssistantsCard assistants={dbApplication.people_regular_contact || []} />
         </div>
       </div>
     </AdminLayout>
