@@ -1,10 +1,13 @@
 import { AppleCard } from "@/components/admin/AppleCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Users, Mail, CheckCircle2, Send } from "lucide-react";
+import { Users, Mail, CheckCircle2, Send, Download, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SendReferenceRequestModal } from "@/components/admin/SendReferenceRequestModal";
+import { ReferencePDF } from "@/components/admin/ReferencePDF";
+import { pdf } from "@react-pdf/renderer";
+import { toast } from "sonner";
 
 interface ReferencesCardProps {
   applicationId?: string;
@@ -91,6 +94,34 @@ export const ReferencesCard = ({
     });
     setSendModalOpen(true);
   };
+
+  const handleDownloadPDF = async (request: any, refNumber: number, refName: string) => {
+    try {
+      const responseData = request.response_data;
+      const pdfDoc = (
+        <ReferencePDF
+          referenceData={responseData}
+          refereeName={refName}
+          refereeRelationship={request.referee_relationship}
+          applicantName={applicantName}
+          isChildcareReference={request.is_childcare_reference || false}
+          submittedDate={request.response_received_date}
+        />
+      );
+
+      const blob = await pdf(pdfDoc).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `reference-${refNumber}-${refName.replace(/\s+/g, "-")}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("PDF downloaded successfully");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to generate PDF");
+    }
+  };
   const ReferenceItem = ({ 
     refNumber, 
     name, 
@@ -160,13 +191,33 @@ export const ReferencesCard = ({
           </Button>
         )}
         
+        {request && request.request_status === "sent" && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-3 gap-2"
+            onClick={() => handleSendRequest(
+              refNumber,
+              name,
+              relationship,
+              contact,
+              isChildcare === "Yes"
+            )}
+          >
+            <RefreshCw className="h-3 w-3" />
+            Resend Request
+          </Button>
+        )}
+        
         {request && request.request_status === "completed" && (
           <Button
             size="sm"
             variant="secondary"
-            className="w-full mt-3"
+            className="w-full mt-3 gap-2"
+            onClick={() => handleDownloadPDF(request, refNumber, name)}
           >
-            View Response
+            <Download className="h-3 w-3" />
+            Download PDF
           </Button>
         )}
       </div>
