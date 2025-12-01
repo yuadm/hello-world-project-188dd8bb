@@ -10,6 +10,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { ApplicationHero } from "@/components/admin/application-detail/ApplicationHero";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
+import { RequestApplicantDBSModal } from "@/components/admin/RequestApplicantDBSModal";
 import { AppleCard } from "@/components/admin/AppleCard";
 import { PersonalInfoCard } from "@/components/admin/application-detail/PersonalInfoCard";
 import { ServiceDetailsCard } from "@/components/admin/application-detail/ServiceDetailsCard";
@@ -104,6 +105,7 @@ const ApplicationDetailNew = () => {
   const [updating, setUpdating] = useState(false);
   const [dbApplication, setDbApplication] = useState<DBApplication | null>(null);
   const [existingEmployeeId, setExistingEmployeeId] = useState<string | null>(null);
+  const [showDBSRequestModal, setShowDBSRequestModal] = useState(false);
 
   useEffect(() => {
     fetchApplication();
@@ -367,6 +369,10 @@ const ApplicationDetailNew = () => {
             otherCircumstances={dbApplication.other_circumstances}
             otherCircumstancesDetails={dbApplication.other_circumstances_details}
             convictionsDetails={dbApplication.convictions_details}
+            applicationId={id}
+            applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+            applicantEmail={dbApplication.email}
+            onRequestDBS={() => setShowDBSRequestModal(true)}
           />
 
           <ReferencesCard
@@ -428,6 +434,15 @@ const ApplicationDetailNew = () => {
             />
           </div>
         )}
+
+        <RequestApplicantDBSModal
+          open={showDBSRequestModal}
+          onOpenChange={setShowDBSRequestModal}
+          applicationId={id!}
+          applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+          applicantEmail={dbApplication.email}
+          onSuccess={fetchApplication}
+        />
       </div>
     </AdminLayout>
   );

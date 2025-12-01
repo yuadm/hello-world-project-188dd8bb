@@ -1,6 +1,7 @@
 import { AppleCard } from "@/components/admin/AppleCard";
 import { Badge } from "@/components/ui/badge";
-import { Shield, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, AlertCircle, Mail } from "lucide-react";
 
 interface DBSVettingCardProps {
   hasDBS: string;
@@ -19,6 +20,10 @@ interface DBSVettingCardProps {
   otherCircumstances?: string;
   otherCircumstancesDetails?: string;
   convictionsDetails?: string;
+  applicationId?: string;
+  applicantName?: string;
+  applicantEmail?: string;
+  onRequestDBS?: () => void;
 }
 
 export const DBSVettingCard = ({
@@ -38,6 +43,10 @@ export const DBSVettingCard = ({
   otherCircumstances,
   otherCircumstancesDetails,
   convictionsDetails,
+  applicationId,
+  applicantName,
+  applicantEmail,
+  onRequestDBS,
 }: DBSVettingCardProps) => {
   return (
     <AppleCard className="p-6 col-span-2">
@@ -47,13 +56,26 @@ export const DBSVettingCard = ({
       </div>
       
       <div className="space-y-4">
-        <div>
-          <div className="text-xs font-medium text-muted-foreground mb-2">
-            DBS Certificate
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs font-medium text-muted-foreground mb-2">
+              DBS Certificate
+            </div>
+            <Badge variant={hasDBS === "Yes" ? "default" : "secondary"}>
+              {hasDBS === "Yes" ? "Has DBS" : "No DBS"}
+            </Badge>
           </div>
-          <Badge variant={hasDBS === "Yes" ? "default" : "secondary"}>
-            {hasDBS === "Yes" ? "Has DBS" : "No DBS"}
-          </Badge>
+          {hasDBS === "Yes" && onRequestDBS && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onRequestDBS}
+              className="gap-2"
+            >
+              <Mail className="h-4 w-4" />
+              Request New DBS
+            </Button>
+          )}
         </div>
 
         {hasDBS === "Yes" && (
