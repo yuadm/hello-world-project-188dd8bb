@@ -1,8 +1,15 @@
 import { AppleCard } from "@/components/admin/AppleCard";
 import { Badge } from "@/components/ui/badge";
-import { Users, Mail, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Mail, CheckCircle2, Send } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { SendReferenceRequestModal } from "@/components/admin/SendReferenceRequestModal";
 
 interface ReferencesCardProps {
+  applicationId?: string;
+  employeeId?: string;
+  applicantName: string;
   reference1Name: string;
   reference1Relationship: string;
   reference1Contact: string;
@@ -16,6 +23,9 @@ interface ReferencesCardProps {
 }
 
 export const ReferencesCard = ({
+  applicationId,
+  employeeId,
+  applicantName,
   reference1Name,
   reference1Relationship,
   reference1Contact,
@@ -27,23 +37,141 @@ export const ReferencesCard = ({
   childVolunteered,
   childVolunteeredConsent,
 }: ReferencesCardProps) => {
-  const ReferenceItem = ({ name, relationship, contact, isChildcare }: { name: string; relationship: string; contact: string; isChildcare?: string }) => (
-    <div className="rounded-lg bg-muted/30 p-4">
-      <div className="flex items-start justify-between mb-2">
-        <div className="font-medium">{name || "N/A"}</div>
-        {isChildcare === "Yes" && (
-          <Badge variant="secondary" className="text-xs">Childcare Ref</Badge>
+  const [referenceRequests, setReferenceRequests] = useState<any[]>([]);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [selectedReference, setSelectedReference] = useState<{
+    number: number;
+    name: string;
+    relationship: string;
+    contact: string;
+    isChildcare: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    loadReferenceRequests();
+  }, [applicationId, employeeId]);
+
+  const loadReferenceRequests = async () => {
+    if (!applicationId && !employeeId) return;
+
+    const query = supabase
+      .from("reference_requests")
+      .select("*");
+
+    if (applicationId) {
+      query.eq("application_id", applicationId);
+    } else if (employeeId) {
+      query.eq("employee_id", employeeId);
+    }
+
+    const { data, error } = await query;
+
+    if (!error && data) {
+      setReferenceRequests(data);
+    }
+  };
+
+  const getRequestForReference = (refNumber: number) => {
+    return referenceRequests.find(r => r.reference_number === refNumber);
+  };
+
+  const handleSendRequest = (
+    refNumber: number,
+    name: string,
+    relationship: string,
+    contact: string,
+    isChildcare: boolean
+  ) => {
+    setSelectedReference({
+      number: refNumber,
+      name,
+      relationship,
+      contact,
+      isChildcare,
+    });
+    setSendModalOpen(true);
+  };
+  const ReferenceItem = ({ 
+    refNumber, 
+    name, 
+    relationship, 
+    contact, 
+    isChildcare 
+  }: { 
+    refNumber: number;
+    name: string; 
+    relationship: string; 
+    contact: string; 
+    isChildcare?: string;
+  }) => {
+    const request = getRequestForReference(refNumber);
+
+    return (
+      <div className="rounded-lg bg-muted/30 p-4">
+        <div className="flex items-start justify-between mb-2">
+          <div className="font-medium">{name || "N/A"}</div>
+          <div className="flex items-center gap-2">
+            {isChildcare === "Yes" && (
+              <Badge variant="secondary" className="text-xs">Childcare Ref</Badge>
+            )}
+            {request && (
+              <Badge 
+                variant={request.request_status === "completed" ? "default" : "outline"}
+                className="text-xs"
+              >
+                {request.request_status === "completed" ? "Received" : "Sent"}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <div className="space-y-2 text-xs text-muted-foreground">
+          <div>Relationship: {relationship || "N/A"}</div>
+          <div className="flex items-center gap-1">
+            <Mail className="h-3 w-3" />
+            {contact || "N/A"}
+          </div>
+          {request?.request_sent_date && (
+            <div className="text-xs">
+              Sent: {new Date(request.request_sent_date).toLocaleDateString()}
+            </div>
+          )}
+          {request?.response_received_date && (
+            <div className="text-xs text-green-600">
+              Received: {new Date(request.response_received_date).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+        
+        {!request && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-3 gap-2"
+            onClick={() => handleSendRequest(
+              refNumber,
+              name,
+              relationship,
+              contact,
+              isChildcare === "Yes"
+            )}
+          >
+            <Send className="h-3 w-3" />
+            Request Reference
+          </Button>
+        )}
+        
+        {request && request.request_status === "completed" && (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="w-full mt-3"
+          >
+            View Response
+          </Button>
         )}
       </div>
-      <div className="space-y-1 text-xs text-muted-foreground">
-        <div>Relationship: {relationship || "N/A"}</div>
-        <div className="flex items-center gap-1">
-          <Mail className="h-3 w-3" />
-          {contact || "N/A"}
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <AppleCard className="p-6">
@@ -56,6 +184,7 @@ export const ReferencesCard = ({
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-2">Reference 1</div>
           <ReferenceItem
+            refNumber={1}
             name={reference1Name}
             relationship={reference1Relationship}
             contact={reference1Contact}
@@ -66,6 +195,7 @@ export const ReferencesCard = ({
         <div>
           <div className="text-xs font-medium text-muted-foreground mb-2">Reference 2</div>
           <ReferenceItem
+            refNumber={2}
             name={reference2Name}
             relationship={reference2Relationship}
             contact={reference2Contact}
@@ -89,6 +219,22 @@ export const ReferencesCard = ({
           </div>
         )}
       </div>
+
+      {selectedReference && (
+        <SendReferenceRequestModal
+          open={sendModalOpen}
+          onOpenChange={setSendModalOpen}
+          applicationId={applicationId}
+          employeeId={employeeId}
+          referenceNumber={selectedReference.number}
+          refereeName={selectedReference.name}
+          refereeRelationship={selectedReference.relationship}
+          refereeContact={selectedReference.contact}
+          isChildcareReference={selectedReference.isChildcare}
+          applicantName={applicantName}
+          onSuccess={loadReferenceRequests}
+        />
+      )}
     </AppleCard>
   );
 };

@@ -9,6 +9,7 @@ import Apply from "./pages/Apply";
 import NotFound from "./pages/NotFound";
 import HouseholdForm from "./pages/HouseholdForm";
 import AssistantForm from "./pages/AssistantForm";
+import ReferenceForm from "./pages/ReferenceForm";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminApplications from "./pages/admin/Applications";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/apply" element={<Apply />} />
           <Route path="/household-form" element={<HouseholdForm />} />
           <Route path="/assistant-form" element={<AssistantForm />} />
+          <Route path="/reference-form" element={<ReferenceForm />} />
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />

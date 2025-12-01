@@ -975,6 +975,84 @@ export type Database = {
           },
         ]
       }
+      reference_requests: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          employee_id: string | null
+          form_token: string | null
+          id: string
+          is_childcare_reference: boolean | null
+          last_reminder_date: string | null
+          referee_contact: string
+          referee_email: string | null
+          referee_name: string
+          referee_relationship: string | null
+          reference_number: number
+          reminder_count: number | null
+          request_sent_date: string | null
+          request_status: string | null
+          response_data: Json | null
+          response_received_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          form_token?: string | null
+          id?: string
+          is_childcare_reference?: boolean | null
+          last_reminder_date?: string | null
+          referee_contact: string
+          referee_email?: string | null
+          referee_name: string
+          referee_relationship?: string | null
+          reference_number: number
+          reminder_count?: number | null
+          request_sent_date?: string | null
+          request_status?: string | null
+          response_data?: Json | null
+          response_received_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          employee_id?: string | null
+          form_token?: string | null
+          id?: string
+          is_childcare_reference?: boolean | null
+          last_reminder_date?: string | null
+          referee_contact?: string
+          referee_email?: string | null
+          referee_name?: string
+          referee_relationship?: string | null
+          reference_number?: number
+          reminder_count?: number | null
+          request_sent_date?: string | null
+          request_status?: string | null
+          response_data?: Json | null
+          response_received_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_requests_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "childminder_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reference_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

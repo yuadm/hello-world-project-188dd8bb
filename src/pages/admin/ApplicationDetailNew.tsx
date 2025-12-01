@@ -370,6 +370,8 @@ const ApplicationDetailNew = () => {
           />
 
           <ReferencesCard
+            applicationId={id}
+            applicantName={`${dbApplication.first_name} ${dbApplication.last_name}`}
             reference1Name={references.reference1?.name}
             reference1Relationship={references.reference1?.relationship}
             reference1Contact={references.reference1?.contact}
