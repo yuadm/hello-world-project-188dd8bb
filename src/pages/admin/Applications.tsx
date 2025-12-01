@@ -20,7 +20,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -44,6 +54,9 @@ const AdminApplications = () => {
   const [filteredApps, setFilteredApps] = useState<Application[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || "all");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -90,6 +103,60 @@ const AdminApplications = () => {
     }
 
     setFilteredApps(filtered);
+  };
+
+  const handleDeleteApplication = async () => {
+    if (!selectedApp) return;
+    setDeleting(true);
+    
+    try {
+      // Check if application has been converted to employee
+      const { data: employee } = await supabase
+        .from('employees')
+        .select('id')
+        .eq('application_id', selectedApp.id)
+        .maybeSingle();
+        
+      if (employee) {
+        toast({
+          title: "Cannot Delete",
+          description: "This application has been converted to an employee record and cannot be deleted.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Delete related records first (cascade)
+      await supabase.from('compliance_household_members').delete().eq('application_id', selectedApp.id);
+      await supabase.from('compliance_assistants').delete().eq('application_id', selectedApp.id);
+      await supabase.from('compliance_household_forms').delete().eq('application_id', selectedApp.id);
+      await supabase.from('compliance_assistant_forms').delete().eq('application_id', selectedApp.id);
+      await supabase.from('reference_requests').delete().eq('application_id', selectedApp.id);
+      
+      // Delete the application
+      const { error } = await supabase
+        .from('childminder_applications')
+        .delete()
+        .eq('id', selectedApp.id);
+        
+      if (error) throw error;
+      
+      toast({ 
+        title: "Application Deleted",
+        description: `Application for ${selectedApp.first_name} ${selectedApp.last_name} has been deleted.`
+      });
+      fetchApplications(); // Refresh list
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete application",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
+      setSelectedApp(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -205,17 +272,31 @@ const AdminApplications = () => {
                           {format(new Date(app.created_at), "MMM dd, yyyy")}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/admin/applications/${app.id}`);
-                            }}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/admin/applications/${app.id}`);
+                              }}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedApp(app);
+                                setShowDeleteDialog(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -226,6 +307,38 @@ const AdminApplications = () => {
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Application</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the application for <strong>{selectedApp?.first_name} {selectedApp?.last_name}</strong>?
+              <br /><br />
+              This will permanently delete:
+              <ul className="list-disc list-inside mt-2 text-sm">
+                <li>The application record</li>
+                <li>All household members</li>
+                <li>All assistants</li>
+                <li>All reference requests</li>
+                <li>All compliance forms</li>
+              </ul>
+              <br />
+              <strong>This action cannot be undone.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteApplication}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting..." : "Delete Application"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
