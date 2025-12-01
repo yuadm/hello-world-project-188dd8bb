@@ -65,7 +65,7 @@ export const DBSVettingCard = ({
               {hasDBS === "Yes" ? "Has DBS" : "No DBS"}
             </Badge>
           </div>
-          {hasDBS === "Yes" && onRequestDBS && (
+          {onRequestDBS && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -73,7 +73,7 @@ export const DBSVettingCard = ({
               className="gap-2"
             >
               <Mail className="h-4 w-4" />
-              Request New DBS
+              {hasDBS === "Yes" ? "Request New DBS" : "Request DBS"}
             </Button>
           )}
         </div>
