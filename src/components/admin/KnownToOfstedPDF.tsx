@@ -207,7 +207,7 @@ export const KnownToOfstedPDF = ({
             <Text style={{ fontWeight: 'bold', marginBottom: 8 }}>Applicant's role (please tick):</Text>
             {Object.entries(roleLabels).map(([key, label]) => (
               <View key={key} style={styles.checkboxRow}>
-                <View style={[styles.checkbox, role === key && styles.checkboxChecked]} />
+                <View style={role === key ? [styles.checkbox, styles.checkboxChecked] : styles.checkbox} />
                 <Text>{label}</Text>
               </View>
             ))}
@@ -218,11 +218,11 @@ export const KnownToOfstedPDF = ({
               Is information required on the number and ages of children involved in any past Ofsted judgement?
             </Text>
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, requireChildInfo && styles.checkboxChecked]} />
+              <View style={requireChildInfo ? [styles.checkbox, styles.checkboxChecked] : styles.checkbox} />
               <Text>Yes</Text>
             </View>
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, !requireChildInfo && styles.checkboxChecked]} />
+              <View style={!requireChildInfo ? [styles.checkbox, styles.checkboxChecked] : styles.checkbox} />
               <Text>No</Text>
             </View>
           </View>
