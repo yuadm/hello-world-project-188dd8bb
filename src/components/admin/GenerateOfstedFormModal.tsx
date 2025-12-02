@@ -59,6 +59,17 @@ export const GenerateOfstedFormModal = ({
   const [requireChildInfo, setRequireChildInfo] = useState(false);
   const [ofstedEmail, setOfstedEmail] = useState("childminder.agencies@ofsted.gov.uk");
 
+  const formatDateSafe = (date: string | undefined): string => {
+    if (!date) return 'N/A';
+    try {
+      const parsed = new Date(date);
+      if (isNaN(parsed.getTime())) return 'N/A';
+      return format(parsed, "dd/MM/yyyy");
+    } catch {
+      return 'N/A';
+    }
+  };
+
   const handleGenerate = async () => {
     if (!requesterName.trim() || !requesterRole.trim()) {
       toast({
@@ -72,13 +83,21 @@ export const GenerateOfstedFormModal = ({
     setGenerating(true);
     try {
       const requestDate = format(new Date(), "dd/MM/yyyy");
+      
+      const safeCurrentAddress = {
+        line1: currentAddress?.line1 || 'Not provided',
+        line2: currentAddress?.line2 || undefined,
+        town: currentAddress?.town || 'Not provided',
+        postcode: currentAddress?.postcode || 'Not provided',
+        moveInDate: currentAddress?.moveInDate || 'N/A',
+      };
 
       const blob = await pdf(
         <KnownToOfstedPDF
-          applicantName={applicantName}
+          applicantName={applicantName || 'Unknown'}
           previousNames={previousNames}
-          dateOfBirth={format(new Date(dateOfBirth), "dd/MM/yyyy")}
-          currentAddress={currentAddress}
+          dateOfBirth={formatDateSafe(dateOfBirth)}
+          currentAddress={safeCurrentAddress}
           previousAddresses={previousAddresses}
           role={role}
           requestDate={requestDate}
@@ -131,16 +150,16 @@ export const GenerateOfstedFormModal = ({
             <h3 className="font-semibold text-sm">Form Preview</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="text-muted-foreground">Applicant:</span> {applicantName}
+                <span className="text-muted-foreground">Applicant:</span> {applicantName || 'N/A'}
               </div>
               <div>
-                <span className="text-muted-foreground">DOB:</span> {format(new Date(dateOfBirth), "dd/MM/yyyy")}
+                <span className="text-muted-foreground">DOB:</span> {formatDateSafe(dateOfBirth)}
               </div>
               <div>
-                <span className="text-muted-foreground">Role:</span> {role.replace("_", " ")}
+                <span className="text-muted-foreground">Role:</span> {role?.replace("_", " ") || 'N/A'}
               </div>
               <div>
-                <span className="text-muted-foreground">Address:</span> {currentAddress.postcode}
+                <span className="text-muted-foreground">Address:</span> {currentAddress?.postcode || 'N/A'}
               </div>
             </div>
           </div>
