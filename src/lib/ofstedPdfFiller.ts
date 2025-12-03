@@ -31,46 +31,46 @@ interface OfstedFormData {
 // Coordinates for Section A fields on page 4 (0-indexed page 3)
 // These coordinates are based on the PDF layout - y is from bottom of page
 const SECTION_A_COORDS = {
-  // Applicant's full name
-  applicantName: { x: 120, y: 640 },
-
+  // Applicant's full name field (white data entry cell)
+  applicantName: { x: 300, y: 755 },
+  
   // Previous surnames
-  previousSurnames: { x: 120, y: 600 },
-
+  previousSurnames: { x: 300, y: 718 },
+  
   // Date of birth
-  dateOfBirth: { x: 120, y: 565 },
-
-  // Full current address (multiline box)
-  currentAddress: { x: 55, y: 520 },
-  currentAddressDate: { x: 55, y: 485 },
-
-  // Previous addresses (history section)
-  previousAddress1: { x: 55, y: 435 },
-  previousAddress1DateFrom: { x: 55, y: 400 },
-  previousAddress1DateTo: { x: 170, y: 400 },
-
-  previousAddress2: { x: 55, y: 355 },
-  previousAddress2DateFrom: { x: 55, y: 320 },
-  previousAddress2DateTo: { x: 170, y: 320 },
-
+  dateOfBirth: { x: 300, y: 682 },
+  
+  // Current address box (Full address including postcode and date from)
+  currentAddress: { x: 175, y: 645 },
+  currentAddressDate: { x: 175, y: 600 },
+  
+  // Previous address boxes (large area for addresses from last 5 years)
+  previousAddress1: { x: 175, y: 545 },
+  previousAddress1DateFrom: { x: 175, y: 500 },
+  previousAddress1DateTo: { x: 280, y: 500 },
+  
+  previousAddress2: { x: 175, y: 460 },
+  previousAddress2DateFrom: { x: 175, y: 420 },
+  previousAddress2DateTo: { x: 280, y: 420 },
+  
   // Date of request to Ofsted
-  requestDate: { x: 120, y: 275 },
-
-  // Applicant roles (checkboxes)
-  roleChildminder: { x: 55, y: 245 },
-  roleHouseholdMember: { x: 55, y: 230 },
-  roleAssistant: { x: 55, y: 215 },
-  roleManager: { x: 55, y: 200 },
-  roleNominatedIndividual: { x: 55, y: 185 },
-
-  // Yes / No checkboxes
-  childInfoYes: { x: 300, y: 245 },
-  childInfoNo: { x: 300, y: 225 },
-
-  // Requester details
-  requesterName: { x: 120, y: 115 },
-  requesterRole: { x: 120, y: 95 },
-  agencyName: { x: 120, y: 75 },
+  requestDate: { x: 300, y: 378 },
+  
+  // Role checkboxes - in the white cell area next to Applicant's role(s)
+  roleChildminder: { x: 300, y: 340 },
+  roleHouseholdMember: { x: 300, y: 325 },
+  roleAssistant: { x: 300, y: 310 },
+  roleManager: { x: 300, y: 295 },
+  roleNominatedIndividual: { x: 300, y: 280 },
+  
+  // Child information checkboxes (Yes/No checkboxes)
+  childInfoYes: { x: 220, y: 238 },
+  childInfoNo: { x: 220, y: 218 },
+  
+  // Requester details (Name of requester and role at childminder agency)
+  requesterName: { x: 280, y: 180 },
+  requesterRole: { x: 280, y: 160 },
+  agencyName: { x: 280, y: 140 },
 };
 
 export async function fillOfstedForm(data: OfstedFormData): Promise<Blob> {
