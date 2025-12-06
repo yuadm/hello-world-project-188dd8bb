@@ -110,12 +110,19 @@ export const SendOfstedFormModal = ({
         description: `Known to Ofsted form link sent to ${ofstedEmail}`,
       });
 
-      onOpenChange(false);
+      // Reset form state first
       setRequesterName("");
       setRequesterRole("");
       setRequireChildInfo(false);
       setOfstedEmail("");
-      onSuccess?.();
+      
+      // Close modal
+      onOpenChange(false);
+      
+      // Small delay to ensure database transaction is committed before refetching
+      setTimeout(() => {
+        onSuccess?.();
+      }, 500);
     } catch (error) {
       console.error('Error sending email:', error);
       toast({
