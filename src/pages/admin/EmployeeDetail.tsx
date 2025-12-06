@@ -213,38 +213,38 @@ const AdminEmployeeDetail = () => {
           />
         </div>
 
-        {/* Known to Ofsted Bento Card */}
-        <KnownToOfstedCard
-          parentId={id!}
-          parentType="employee"
-          applicantName={`${employee.first_name} ${employee.last_name}`}
-          dateOfBirth={employee.date_of_birth || ''}
-          currentAddress={{
-            line1: employee.address_line_1 || '',
-            line2: employee.address_line_2 || '',
-            town: employee.town_city || '',
-            postcode: employee.postcode || '',
-            moveInDate: '',
-          }}
-          role="childminder"
-        />
-
-        {/* Local Authority Check Bento Card */}
-        <LocalAuthorityCheckCard
-          parentId={id!}
-          parentType="employee"
-          applicantName={`${employee.first_name} ${employee.last_name}`}
-          dateOfBirth={employee.date_of_birth || ''}
-          currentAddress={{
-            line1: employee.address_line_1 || '',
-            line2: employee.address_line_2 || '',
-            town: employee.town_city || '',
-            postcode: employee.postcode || '',
-            moveInDate: '',
-          }}
-          localAuthority={employee.local_authority || ''}
-          role="childminder"
-        />
+        {/* External Checks - Ofsted & Local Authority */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <KnownToOfstedCard
+            parentId={id!}
+            parentType="employee"
+            applicantName={`${employee.first_name} ${employee.last_name}`}
+            dateOfBirth={employee.date_of_birth || ''}
+            currentAddress={{
+              line1: employee.address_line_1 || '',
+              line2: employee.address_line_2 || '',
+              town: employee.town_city || '',
+              postcode: employee.postcode || '',
+              moveInDate: '',
+            }}
+            role="childminder"
+          />
+          <LocalAuthorityCheckCard
+            parentId={id!}
+            parentType="employee"
+            applicantName={`${employee.first_name} ${employee.last_name}`}
+            dateOfBirth={employee.date_of_birth || ''}
+            currentAddress={{
+              line1: employee.address_line_1 || '',
+              line2: employee.address_line_2 || '',
+              town: employee.town_city || '',
+              postcode: employee.postcode || '',
+              moveInDate: '',
+            }}
+            localAuthority={employee.local_authority || ''}
+            role="childminder"
+          />
+        </div>
 
         <RequestEmployeeDBSModal
           open={dbsModalOpen}
