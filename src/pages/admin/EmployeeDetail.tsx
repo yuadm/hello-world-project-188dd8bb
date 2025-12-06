@@ -12,7 +12,7 @@ import { Employee } from "@/types/employee";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
 import { ReferencesCard } from "@/components/admin/application-detail/ReferencesCard";
-import { EmployeeDBSCard } from "@/components/admin/employee-detail/EmployeeDBSCard";
+
 import { KnownToOfstedCard } from "@/components/admin/KnownToOfstedCard";
 import { LocalAuthorityCheckCard } from "@/components/admin/LocalAuthorityCheckCard";
 import { RequestEmployeeDBSModal } from "@/components/admin/RequestEmployeeDBSModal";
@@ -116,8 +116,13 @@ const AdminEmployeeDetail = () => {
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="rounded-2xl border-0 shadow-apple-sm">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl font-semibold tracking-tight">Personal Information</CardTitle>
+              {(!employee.dbs_status || employee.dbs_status === 'not_requested') && (
+                <Button size="sm" variant="outline" onClick={() => setDbsModalOpen(true)}>
+                  Request DBS
+                </Button>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
@@ -139,6 +144,30 @@ const AdminEmployeeDetail = () => {
                 
                 <p className="text-sm font-medium text-muted-foreground">NI Number:</p>
                 <p className="text-sm">{employee.ni_number || "N/A"}</p>
+
+                <p className="text-sm font-medium text-muted-foreground">DBS Status:</p>
+                <p className="text-sm capitalize">{employee.dbs_status?.replace('_', ' ') || "Not Requested"}</p>
+
+                {employee.dbs_certificate_number && (
+                  <>
+                    <p className="text-sm font-medium text-muted-foreground">DBS Certificate:</p>
+                    <p className="text-sm">{employee.dbs_certificate_number}</p>
+                  </>
+                )}
+
+                {employee.dbs_certificate_date && (
+                  <>
+                    <p className="text-sm font-medium text-muted-foreground">DBS Issue Date:</p>
+                    <p className="text-sm">{format(new Date(employee.dbs_certificate_date), "MMM dd, yyyy")}</p>
+                  </>
+                )}
+
+                {employee.dbs_certificate_expiry_date && (
+                  <>
+                    <p className="text-sm font-medium text-muted-foreground">DBS Expiry:</p>
+                    <p className="text-sm">{format(new Date(employee.dbs_certificate_expiry_date), "MMM dd, yyyy")}</p>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -179,14 +208,7 @@ const AdminEmployeeDetail = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <EmployeeDBSCard
-            dbsStatus={employee.dbs_status || "not_requested"}
-            dbsCertificateNumber={employee.dbs_certificate_number}
-            dbsCertificateDate={employee.dbs_certificate_date}
-            dbsCertificateExpiryDate={employee.dbs_certificate_expiry_date}
-            onRequestDBS={() => setDbsModalOpen(true)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <UnifiedHouseholdComplianceCard
             parentId={id!}
             parentType="employee"
