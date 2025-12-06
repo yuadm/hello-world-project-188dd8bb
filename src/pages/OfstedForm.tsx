@@ -343,53 +343,53 @@ const OfstedForm = () => {
               <div className="space-y-3">
                 <Label className="font-semibold">Our records indicate that: <span className="text-red-500">*</span></Label>
                 
-                <div
-                  onClick={() => toggleRecordStatus("notKnown")}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                <label
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all flex items-start gap-3 ${
                     recordsStatus.includes("notKnown") 
                       ? "bg-[#e6f5f7] border-[#1B9AAA]" 
                       : "bg-gray-50 border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <Checkbox checked={recordsStatus.includes("notKnown")} />
-                    <span className="text-sm">From the information provided, this individual is not known to Ofsted.</span>
-                  </div>
-                </div>
+                  <Checkbox 
+                    checked={recordsStatus.includes("notKnown")} 
+                    onCheckedChange={() => toggleRecordStatus("notKnown")}
+                  />
+                  <span className="text-sm">From the information provided, this individual is not known to Ofsted.</span>
+                </label>
 
-                <div
-                  onClick={() => toggleRecordStatus("currentProvider")}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                <label
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all flex items-start gap-3 ${
                     recordsStatus.includes("currentProvider") 
                       ? "bg-[#e6f5f7] border-[#1B9AAA]" 
                       : "bg-gray-50 border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <Checkbox checked={recordsStatus.includes("currentProvider")} />
-                    <div>
-                      <span className="text-sm">From the information provided, this individual is currently known to Ofsted as a registered provider.</span>
-                      <p className="text-xs text-gray-500 mt-1">The information that Ofsted has a duty to share regarding this individual is provided in Section C.</p>
-                    </div>
+                  <Checkbox 
+                    checked={recordsStatus.includes("currentProvider")} 
+                    onCheckedChange={() => toggleRecordStatus("currentProvider")}
+                  />
+                  <div>
+                    <span className="text-sm">From the information provided, this individual is currently known to Ofsted as a registered provider.</span>
+                    <p className="text-xs text-gray-500 mt-1">The information that Ofsted has a duty to share regarding this individual is provided in Section C.</p>
                   </div>
-                </div>
+                </label>
 
-                <div
-                  onClick={() => toggleRecordStatus("formerOrOther")}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                <label
+                  className={`p-4 border-2 rounded-lg cursor-pointer transition-all flex items-start gap-3 ${
                     recordsStatus.includes("formerOrOther") 
                       ? "bg-[#e6f5f7] border-[#1B9AAA]" 
                       : "bg-gray-50 border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <Checkbox checked={recordsStatus.includes("formerOrOther")} />
-                    <div>
-                      <span className="text-sm">From the information provided, this individual is known to Ofsted either as a former registered provider, or in any capacity other than registered provider.</span>
-                      <p className="text-xs text-gray-500 mt-1">The information that Ofsted has the power to share regarding this individual is provided in Section D.</p>
-                    </div>
+                  <Checkbox 
+                    checked={recordsStatus.includes("formerOrOther")} 
+                    onCheckedChange={() => toggleRecordStatus("formerOrOther")}
+                  />
+                  <div>
+                    <span className="text-sm">From the information provided, this individual is known to Ofsted either as a former registered provider, or in any capacity other than registered provider.</span>
+                    <p className="text-xs text-gray-500 mt-1">The information that Ofsted has the power to share regarding this individual is provided in Section D.</p>
                   </div>
-                </div>
+                </label>
               </div>
 
               <div>
