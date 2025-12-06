@@ -257,8 +257,9 @@ const styles = StyleSheet.create({
   },
   statusCheckmark: {
     color: colors.background,
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: "bold",
+    textAlign: "center" as const,
   },
   statusText: {
     fontSize: 10,
@@ -290,8 +291,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 6,
     marginTop: 10,
-    flexDirection: "row",
-    alignItems: "flex-start",
   },
   alertBoxDanger: {
     backgroundColor: colors.dangerLight,
@@ -724,9 +723,9 @@ export const OfstedResponsePDF = ({
                   return (
                     <View key={idx} style={statusStyles.row}>
                       <View style={statusStyles.icon}>
-                        <Text style={styles.statusCheckmark}>✓</Text>
+                        <Text style={styles.statusCheckmark}>OK</Text>
                       </View>
-                      <View>
+                      <View style={{ flex: 1 }}>
                         <Text style={styles.statusText}>{getStatusLabel(status)}</Text>
                         <Text style={styles.statusSubtext}>{getStatusDescription(status)}</Text>
                       </View>
@@ -829,9 +828,6 @@ export const OfstedResponsePDF = ({
 
               {responseData.sectionC.conditions && (
                 <View style={[styles.alertBox, styles.alertBoxWarning]}>
-                  <View style={[styles.alertIcon, styles.alertIconWarning]}>
-                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>!</Text>
-                  </View>
                   <View style={styles.alertContent}>
                     <Text style={[styles.alertTitle, styles.alertTitleWarning]}>Conditions on Registration</Text>
                     <Text style={[styles.alertText, styles.alertTextWarning]}>{responseData.sectionC.conditions}</Text>
@@ -840,9 +836,6 @@ export const OfstedResponsePDF = ({
               )}
               {responseData.sectionC.suitabilityInfo && (
                 <View style={[styles.alertBox, styles.alertBoxWarning]}>
-                  <View style={[styles.alertIcon, styles.alertIconWarning]}>
-                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>!</Text>
-                  </View>
                   <View style={styles.alertContent}>
                     <Text style={[styles.alertTitle, styles.alertTitleWarning]}>Suitability Information</Text>
                     <Text style={[styles.alertText, styles.alertTextWarning]}>{responseData.sectionC.suitabilityInfo}</Text>
@@ -851,9 +844,6 @@ export const OfstedResponsePDF = ({
               )}
               {responseData.sectionC.inspectionInfo && (
                 <View style={[styles.alertBox, styles.alertBoxWarning]}>
-                  <View style={[styles.alertIcon, styles.alertIconWarning]}>
-                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>!</Text>
-                  </View>
                   <View style={styles.alertContent}>
                     <Text style={[styles.alertTitle, styles.alertTitleWarning]}>Inspection/Enforcement Information</Text>
                     <Text style={[styles.alertText, styles.alertTextWarning]}>{responseData.sectionC.inspectionInfo}</Text>
@@ -862,11 +852,8 @@ export const OfstedResponsePDF = ({
               )}
               {responseData.sectionC.safeguardingConcerns && (
                 <View style={[styles.alertBox, styles.alertBoxDanger]}>
-                  <View style={[styles.alertIcon, styles.alertIconDanger]}>
-                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>⚠</Text>
-                  </View>
                   <View style={styles.alertContent}>
-                    <Text style={[styles.alertTitle, styles.alertTitleDanger]}>Safeguarding Concerns</Text>
+                    <Text style={[styles.alertTitle, styles.alertTitleDanger]}>SAFEGUARDING CONCERNS</Text>
                     <Text style={[styles.alertText, styles.alertTextDanger]}>{responseData.sectionC.safeguardingConcerns}</Text>
                   </View>
                 </View>
