@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FormProgressBar } from "@/components/household-form/FormProgressBar";
+import { RKProgressCard, RKSectionNav, RKFormHeader, RKButton, RKApplyFooter } from "@/components/apply/rk";
 import { ConnectionBanner } from "@/components/household-form/ConnectionBanner";
 import { HouseholdFormSection1 } from "@/components/household-form/HouseholdFormSection1";
 import { HouseholdFormSection2 } from "@/components/household-form/HouseholdFormSection2";
 import { HouseholdFormSection3 } from "@/components/household-form/HouseholdFormSection3";
 import { HouseholdFormSection4 } from "@/components/household-form/HouseholdFormSection4";
 import { HouseholdFormSection5 } from "@/components/household-form/HouseholdFormSection5";
-import { Button } from "@/components/ui/button";
+import { Printer } from "lucide-react";
 
 export interface HouseholdFormData {
   // Section 1
@@ -59,12 +59,20 @@ export interface HouseholdFormData {
   signatureDate: string;
 }
 
+const SECTIONS = [
+  { id: 1, label: "Personal Details" },
+  { id: 2, label: "Address History" },
+  { id: 3, label: "Vetting & Suitability" },
+  { id: 4, label: "Health Declaration" },
+  { id: 5, label: "Declaration" },
+];
+
 export default function HouseholdForm() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get("token");
   
-  const [currentSection, setCurrentSection] = useState(0);
+  const [currentSection, setCurrentSection] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [connectionInfo, setConnectionInfo] = useState<any>(null);
@@ -95,7 +103,6 @@ export default function HouseholdForm() {
 
   const loadFormData = async () => {
     try {
-      // Try to find the token in compliance_household_members
       const { data: member } = await supabase
         .from("compliance_household_members")
         .select(`
@@ -143,7 +150,6 @@ export default function HouseholdForm() {
         isEmployee
       });
 
-      // Load existing form from unified compliance_household_forms table
       const { data: existingForm } = await supabase
         .from("compliance_household_forms")
         .select("*")
@@ -151,7 +157,6 @@ export default function HouseholdForm() {
         .maybeSingle();
 
       if (existingForm && existingForm.status !== "submitted") {
-        // Restore draft
         setFormData({
           title: existingForm.title || "",
           firstName: existingForm.first_name || "",
@@ -204,7 +209,7 @@ export default function HouseholdForm() {
   const validateSection = (section: number): boolean => {
     const errors: Record<string, string> = {};
 
-    if (section === 0) {
+    if (section === 1) {
       if (!formData.title) errors.title = "Select a title";
       if (!formData.firstName.trim()) errors.firstName = "Enter your first name";
       if (!formData.lastName.trim()) errors.lastName = "Enter your last name";
@@ -215,13 +220,13 @@ export default function HouseholdForm() {
       else if (!/^[A-Z]{2}[0-9]{6}[A-D]$/.test(formData.niNumber.replace(/\s/g, ""))) {
         errors.niNumber = "Enter a valid NI number format (e.g., QQ123456C)";
       }
-    } else if (section === 1) {
+    } else if (section === 2) {
       if (!formData.homeAddressLine1.trim()) errors.homeAddressLine1 = "Enter address line 1";
       if (!formData.homeTown.trim()) errors.homeTown = "Enter town or city";
       if (!formData.homePostcode.trim()) errors.homePostcode = "Enter postcode";
       if (!formData.homeMoveIn) errors.homeMoveIn = "Enter move in date";
       if (!formData.livedOutsideUK) errors.livedOutsideUK = "Select yes or no";
-    } else if (section === 2) {
+    } else if (section === 3) {
       if (!formData.prevReg) errors.prevReg = "Select yes or no";
       if (!formData.hasDBS) errors.hasDBS = "Select yes or no";
       if (formData.hasDBS === "Yes" && !formData.dbsNumber.trim()) {
@@ -233,10 +238,10 @@ export default function HouseholdForm() {
       if (!formData.offenceHistory) errors.offenceHistory = "Select yes or no";
       if (!formData.disqualified) errors.disqualified = "Select yes or no";
       if (!formData.socialServices) errors.socialServices = "Select yes or no";
-    } else if (section === 3) {
+    } else if (section === 4) {
       if (!formData.healthCondition) errors.healthCondition = "Select yes or no";
       if (!formData.smoker) errors.smoker = "Select yes or no";
-    } else if (section === 4) {
+    } else if (section === 5) {
       if (!formData.consentChecks) errors.consentChecks = "You must consent to checks";
       if (!formData.declarationTruth) errors.declarationTruth = "You must confirm the information is true";
       if (!formData.declarationNotify) errors.declarationNotify = "You must agree to notify of changes";
@@ -247,7 +252,6 @@ export default function HouseholdForm() {
     
     if (Object.keys(errors).length > 0) {
       toast.error("Please complete all required fields before continuing");
-      // Scroll to first error
       setTimeout(() => {
         const firstError = document.querySelector('[aria-invalid="true"]');
         if (firstError) {
@@ -263,7 +267,6 @@ export default function HouseholdForm() {
   const saveDraft = async () => {
     if (!token || !connectionInfo) return;
 
-    // Only save drafts for applicants, not employees
     if (connectionInfo.isEmployee) {
       return;
     }
@@ -328,17 +331,14 @@ export default function HouseholdForm() {
   const handleSubmit = async () => {
     if (!token || !connectionInfo) return;
 
-    // Validate final section before submission
-    if (!validateSection(4)) {
+    if (!validateSection(5)) {
       return;
     }
 
     setSubmitting(true);
     try {
-      // Save final submission
       await saveDraft();
 
-      // Call submission edge function
       const { error } = await supabase.functions.invoke("submit-household-form", {
         body: { token, formData }
       });
@@ -355,125 +355,144 @@ export default function HouseholdForm() {
     }
   };
 
+  const handleSectionClick = (sectionId: number) => {
+    if (sectionId < currentSection) {
+      setValidationErrors({});
+      setCurrentSection(sectionId);
+    } else if (sectionId === currentSection + 1) {
+      if (validateSection(currentSection)) {
+        setValidationErrors({});
+        setCurrentSection(sectionId);
+      }
+    }
+  };
+
+  const handleNext = () => {
+    if (validateSection(currentSection)) {
+      setValidationErrors({});
+      setCurrentSection(currentSection + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleBack = () => {
+    setValidationErrors({});
+    setCurrentSection(currentSection - 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E8F5F0] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading form...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(163,50%,38%)] mx-auto mb-4"></div>
+          <p className="text-[#64748B]">Loading form...</p>
         </div>
       </div>
     );
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
-    <div className="min-h-screen bg-muted">
-      <header className="bg-primary text-primary-foreground border-b-8 border-white no-print">
-        <div className="container mx-auto px-4 py-3">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E8F5F0]">
+      {/* Header */}
+      <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-50 no-print">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span className="text-2xl font-bold">Ready Kids</span>
-              <span className="text-lg border-l pl-4">Childminder Registration Service</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xl font-bold text-[hsl(163,50%,38%)] font-fraunces">Ready Kids</span>
+              <span className="text-sm text-[#64748B] border-l border-[#E2E8F0] pl-3">Household Member Form</span>
             </div>
-            <Button
+            <button
               type="button"
-              variant="outline"
-              onClick={handlePrint}
-              className="bg-white text-primary hover:bg-gray-100"
+              onClick={() => window.print()}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#64748B] hover:text-[hsl(163,50%,38%)] hover:bg-[#F1F5F9] rounded-lg transition-colors"
             >
-              🖨️ Print Form
-            </Button>
+              <Printer className="h-4 w-4" />
+              Print
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 md:px-8 py-10">
-        <div className="max-w-4xl mx-auto bg-card p-6 md:p-10 shadow-lg rounded-lg">
-          <h1 className="text-4xl font-bold mb-4">Suitability Check for Household Members</h1>
-          <p className="text-lg mb-6">
-            This is form <strong>CMA-H2</strong>. You have been asked to complete this form because you are aged 16 or over and live or work at a premises where childminding takes place.
-          </p>
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+          {/* Left Sidebar */}
+          <aside className="space-y-6 no-print">
+            <RKProgressCard 
+              currentSection={currentSection} 
+              totalSections={SECTIONS.length} 
+            />
+            <RKSectionNav 
+              sections={SECTIONS}
+              currentSection={currentSection}
+              onSectionClick={handleSectionClick}
+            />
+          </aside>
 
-          <ConnectionBanner
-            applicantName={connectionInfo?.applicantName}
-            applicantAddress={connectionInfo?.applicantAddress}
-            memberName={connectionInfo?.memberName}
-          />
+          {/* Main Content */}
+          <div className="bg-white rounded-[20px] shadow-[0_4px_24px_rgba(15,23,42,0.08)] overflow-hidden">
+            <RKFormHeader 
+              title="Suitability Check for Household Members"
+              subtitle="Form CMA-H2 - Complete this form if you are aged 16+ and live or work at a childminding premises."
+            />
 
-          <FormProgressBar currentSection={currentSection} totalSections={5} />
+            <div className="p-6 md:p-10">
+              <ConnectionBanner
+                applicantName={connectionInfo?.applicantName}
+                applicantAddress={connectionInfo?.applicantAddress}
+                memberName={connectionInfo?.memberName}
+              />
 
-          {currentSection === 0 && (
-            <HouseholdFormSection1 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
-          )}
-          {currentSection === 1 && (
-            <HouseholdFormSection2 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
-          )}
-          {currentSection === 2 && (
-            <HouseholdFormSection3 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
-          )}
-          {currentSection === 3 && (
-            <HouseholdFormSection4 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
-          )}
-          {currentSection === 4 && (
-            <HouseholdFormSection5 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
-          )}
-
-          <div className="mt-10 pt-6 border-t flex flex-wrap gap-4 justify-between items-center no-print">
-            <div className="flex gap-2">
-              {currentSection > 0 && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    setValidationErrors({});
-                    setCurrentSection(currentSection - 1);
-                  }}
-                >
-                  ← Back
-                </Button>
+              {currentSection === 1 && (
+                <HouseholdFormSection1 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
               )}
-              
-              {currentSection < 4 && (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (validateSection(currentSection)) {
-                      saveDraft();
-                      setValidationErrors({});
-                      setCurrentSection(currentSection + 1);
-                    }
-                  }}
-                >
-                  Save and continue →
-                </Button>
+              {currentSection === 2 && (
+                <HouseholdFormSection2 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
               )}
-
+              {currentSection === 3 && (
+                <HouseholdFormSection3 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
+              )}
               {currentSection === 4 && (
-                <Button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="bg-[hsl(var(--govuk-green))] hover:bg-[hsl(var(--govuk-green-hover))] text-white font-bold"
-                >
-                  {submitting ? "Submitting..." : "✓ Submit Form"}
-                </Button>
+                <HouseholdFormSection4 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
               )}
-            </div>
+              {currentSection === 5 && (
+                <HouseholdFormSection5 formData={formData} setFormData={setFormData} validationErrors={validationErrors} />
+              )}
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={saveDraft}
-            >
-              💾 Save Draft
-            </Button>
+              {/* Navigation Buttons */}
+              <div className="mt-10 pt-6 border-t border-[#E2E8F0] flex flex-wrap gap-4 justify-between items-center no-print">
+                <div className="flex gap-3">
+                  {currentSection > 1 && (
+                    <RKButton variant="secondary" onClick={handleBack}>
+                      ← Back
+                    </RKButton>
+                  )}
+                  
+                  {currentSection < 5 && (
+                    <RKButton onClick={handleNext}>
+                      Continue →
+                    </RKButton>
+                  )}
+                  
+                  {currentSection === 5 && (
+                    <RKButton onClick={handleSubmit} disabled={submitting}>
+                      {submitting ? "Submitting..." : "Submit Form"}
+                    </RKButton>
+                  )}
+                </div>
+
+                {currentSection < 5 && !connectionInfo?.isEmployee && (
+                  <RKButton variant="secondary" onClick={saveDraft}>
+                    Save Draft
+                  </RKButton>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </main>
+
+      <RKApplyFooter />
     </div>
   );
 }
