@@ -1,12 +1,8 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { GovUKInput } from "./GovUKInput";
-import { GovUKRadio } from "./GovUKRadio";
-import { GovUKButton } from "./GovUKButton";
-import { GovUKTextarea } from "./GovUKTextarea";
-import { GovUKSelect } from "./GovUKSelect";
+import { RKInput, RKRadio, RKButton, RKTextarea, RKSelect, RKSectionTitle, RKInfoBox } from "./rk";
 import { useState, useMemo } from "react";
-import { Plus, Trash2, AlertCircle, CheckCircle2, Search } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import { 
   calculateAddressHistoryCoverage, 
   formatDateRange, 
@@ -112,21 +108,24 @@ export const Section2AddressHistory = ({ form }: Props) => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-foreground">2. Address History</h2>
+      <RKSectionTitle 
+        title="Address History"
+        description="We need your current and previous addresses for the last 5 years."
+      />
 
-      <h3 className="text-xl font-bold">Current Home Address</h3>
-      <p className="text-base">This is the address where you currently live.</p>
+      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Current Home Address</h3>
+      <p className="text-sm text-rk-text-light">This is the address where you currently live.</p>
 
       <div>
-        <GovUKInput
+        <RKInput
           label="Postcode"
           required
           widthClass="10"
           placeholder="e.g. SW1A 1AA"
           {...register("homePostcode")}
         />
-        <div className="mt-3 flex gap-3">
-          <GovUKButton
+        <div className="mt-3 flex gap-3 flex-wrap">
+          <RKButton
             type="button"
             variant="secondary"
             onClick={handlePostcodeLookup}
@@ -135,7 +134,7 @@ export const Section2AddressHistory = ({ form }: Props) => {
           >
             <Search className="h-4 w-4" />
             {isLookingUpPostcode ? "Looking up..." : "Find address"}
-          </GovUKButton>
+          </RKButton>
           <button
             type="button"
             onClick={() => {
@@ -143,7 +142,7 @@ export const Section2AddressHistory = ({ form }: Props) => {
               setAddressList([]);
               setSelectedAddress("");
             }}
-            className="underline text-primary hover:text-primary/80 text-sm"
+            className="underline text-rk-primary hover:text-rk-primary-dark text-sm"
           >
             {showManualAddress ? "Use postcode lookup" : "Enter address manually"}
           </button>
@@ -151,7 +150,7 @@ export const Section2AddressHistory = ({ form }: Props) => {
       </div>
 
       {addressList.length > 0 && !showManualAddress && (
-        <GovUKSelect
+        <RKSelect
           label="Select your address"
           hint="Choose your address from the list"
           options={[
@@ -169,19 +168,19 @@ export const Section2AddressHistory = ({ form }: Props) => {
 
       {(showManualAddress || selectedAddress) && (
         <div className="space-y-4">
-          <GovUKInput
+          <RKInput
             label="Address line 1"
             required
             {...register("homeAddress.line1")}
           />
-          <GovUKInput label="Address line 2" {...register("homeAddress.line2")} />
-          <GovUKInput
+          <RKInput label="Address line 2" {...register("homeAddress.line2")} />
+          <RKInput
             label="Town or city"
             required
             widthClass="20"
             {...register("homeAddress.town")}
           />
-          <GovUKInput
+          <RKInput
             label="Postcode"
             required
             widthClass="10"
@@ -190,7 +189,7 @@ export const Section2AddressHistory = ({ form }: Props) => {
         </div>
       )}
 
-      <GovUKInput
+      <RKInput
         label="When did you move into this address?"
         type="date"
         required
@@ -198,164 +197,140 @@ export const Section2AddressHistory = ({ form }: Props) => {
         {...register("homeMoveIn")}
       />
 
-      <div className="border-t pt-6">
-        <h3 className="text-2xl font-bold mb-4">5-Year Address History</h3>
-        <p className="text-base mb-6">
-          You must provide a complete history of all addresses where you have lived for the past 5
-          years. This is required for background checks. Your current address is already recorded
-          above.
-        </p>
+      <div className="rk-divider" />
 
-        {/* Coverage Status Display */}
-        {coverage && (
-          <div className="mb-6 space-y-4">
-            {coverage.isCovered ? (
-              <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-green))] bg-[hsl(var(--govuk-inset-green-bg))] flex items-start gap-3">
-                <CheckCircle2 className="h-6 w-6 text-[hsl(var(--govuk-green))] flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[hsl(var(--govuk-green))] mb-1">
-                    ✓ Your address history covers the last 5 years
+      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">5-Year Address History</h3>
+      <p className="text-sm text-rk-text-light mb-6">
+        You must provide a complete history of all addresses where you have lived for the past 5
+        years. This is required for background checks.
+      </p>
+
+      {/* Coverage Status Display */}
+      {coverage && (
+        <div className="mb-6">
+          {coverage.isCovered ? (
+            <RKInfoBox type="success" title="Your address history covers the last 5 years">
+              Coverage: {Math.round(coverage.coveragePercentage)}% ({coverage.totalDaysCovered} of {coverage.requiredDays} days)
+            </RKInfoBox>
+          ) : (
+            <div className="space-y-3">
+              <RKInfoBox type="error" title="Incomplete address history">
+                Coverage: {Math.round(coverage.coveragePercentage)}% ({coverage.totalDaysCovered} of {coverage.requiredDays} days)
+              </RKInfoBox>
+
+              {coverage.gaps.length > 0 && (
+                <RKInfoBox type="info" title="Gaps detected in your address history">
+                  <ul className="space-y-1 mt-2">
+                    {coverage.gaps.map((gap, index) => (
+                      <li key={index} className="text-sm">
+                        • {formatDateRange(gap.start, gap.end)} ({daysBetween(gap.start, gap.end)} days)
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-sm mt-3 font-semibold">
+                    You can either add previous addresses or explain them below.
                   </p>
-                  <p className="text-sm">
-                    Coverage: {Math.round(coverage.coveragePercentage)}% ({coverage.totalDaysCovered} of {coverage.requiredDays} days)
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))] flex items-start gap-3">
-                  <AlertCircle className="h-6 w-6 text-[hsl(var(--govuk-red))] flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-[hsl(var(--govuk-red))] mb-1">
-                      Incomplete address history
-                    </p>
-                    <p className="text-sm">
-                      Coverage: {Math.round(coverage.coveragePercentage)}% ({coverage.totalDaysCovered} of {coverage.requiredDays} days)
-                    </p>
-                  </div>
-                </div>
-
-                {coverage.gaps.length > 0 && (
-                  <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-                    <p className="font-bold mb-2">Gaps detected in your address history:</p>
-                    <ul className="space-y-1">
-                      {coverage.gaps.map((gap, index) => (
-                        <li key={index} className="text-sm">
-                          • {formatDateRange(gap.start, gap.end)} ({daysBetween(gap.start, gap.end)} days)
-                        </li>
-                      ))}
-                    </ul>
-                    <p className="text-sm mt-3 font-semibold">
-                      You can either add previous addresses to cover these dates, or explain them in the "Explain any gaps" section below to proceed.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {!homeMoveIn && (
-          <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-grey-border))] bg-[hsl(var(--govuk-inset-grey))] mb-4">
-            <p className="text-sm">
-              Please enter your current address move-in date above to calculate address history coverage.
-            </p>
-          </div>
-        )}
-
-        {addressHistory.map((_, index) => (
-          <div
-            key={index}
-            className="mb-6 p-6 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))] space-y-4"
-          >
-            <div className="flex justify-between items-center">
-              <h4 className="font-semibold">Previous Address {index + 1}</h4>
-              <button
-                type="button"
-                onClick={() => removeAddressHistory(index)}
-                className="text-[hsl(var(--govuk-red))] hover:underline flex items-center gap-1"
-              >
-                <Trash2 className="h-4 w-4" />
-                Remove
-              </button>
+                </RKInfoBox>
+              )}
             </div>
-            <GovUKInput
-              label="Address line 1"
-              {...register(`addressHistory.${index}.address.line1`)}
-            />
-            <GovUKInput label="Address line 2" {...register(`addressHistory.${index}.address.line2`)} />
-            <GovUKInput label="Town or city" {...register(`addressHistory.${index}.address.town`)} />
-            <GovUKInput label="Postcode" widthClass="10" {...register(`addressHistory.${index}.address.postcode`)} />
-            <div className="grid grid-cols-2 gap-4">
-              <GovUKInput label="Moved in" type="date" {...register(`addressHistory.${index}.moveIn`)} />
-              <GovUKInput label="Moved out" type="date" {...register(`addressHistory.${index}.moveOut`)} />
-            </div>
-          </div>
-        ))}
+          )}
+        </div>
+      )}
 
-        <GovUKButton
-          type="button"
-          variant="secondary"
-          onClick={addAddressHistory}
-          className="flex items-center gap-2"
-          disabled={coverage?.isCovered}
+      {!homeMoveIn && (
+        <RKInfoBox type="info">
+          Please enter your current address move-in date above to calculate address history coverage.
+        </RKInfoBox>
+      )}
+
+      {addressHistory.map((_, index) => (
+        <div
+          key={index}
+          className="mb-6 p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
         >
-          <Plus className="h-4 w-4" />
-          {coverage?.isCovered ? "Address history complete" : "Add previous address"}
-        </GovUKButton>
-      </div>
+          <div className="flex justify-between items-center">
+            <h4 className="font-semibold text-rk-text">Previous Address {index + 1}</h4>
+            <button
+              type="button"
+              onClick={() => removeAddressHistory(index)}
+              className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 text-sm"
+            >
+              <Trash2 className="h-4 w-4" />
+              Remove
+            </button>
+          </div>
+          <RKInput
+            label="Address line 1"
+            {...register(`addressHistory.${index}.address.line1`)}
+          />
+          <RKInput label="Address line 2" {...register(`addressHistory.${index}.address.line2`)} />
+          <RKInput label="Town or city" {...register(`addressHistory.${index}.address.town`)} />
+          <RKInput label="Postcode" widthClass="10" {...register(`addressHistory.${index}.address.postcode`)} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <RKInput label="Moved in" type="date" {...register(`addressHistory.${index}.moveIn`)} />
+            <RKInput label="Moved out" type="date" {...register(`addressHistory.${index}.moveOut`)} />
+          </div>
+        </div>
+      ))}
 
-      <GovUKTextarea
+      <RKButton
+        type="button"
+        variant="secondary"
+        onClick={addAddressHistory}
+        className="flex items-center gap-2"
+        disabled={coverage?.isCovered}
+      >
+        <Plus className="h-4 w-4" />
+        {coverage?.isCovered ? "Address history complete" : "Add previous address"}
+      </RKButton>
+
+      <RKTextarea
         label="Explain any gaps in address history"
         hint="If there are gaps in your address history, please explain periods of travel, temporary accommodation, or other circumstances."
         rows={4}
         {...register("addressGaps")}
       />
 
-      <div className="space-y-6">
-        <GovUKRadio
-          legend="Have you lived outside the UK in the last 5 years?"
-          required
-          name="livedOutsideUK"
-          options={[
-            { value: "Yes", label: "Yes" },
-            { value: "No", label: "No" },
-          ]}
-          value={livedOutsideUK}
-          onChange={(value) => setValue("livedOutsideUK", value as "Yes" | "No")}
-        />
+      <div className="rk-divider" />
 
-        {livedOutsideUK === "Yes" && (
-          <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-            <p className="text-sm">
-              If you have lived outside the UK, you must obtain a police check or 'Certificate of
-              Good Conduct' from the relevant countries. You will need to provide these documents to
-              Ready Kids.
-            </p>
-          </div>
-        )}
+      <RKRadio
+        legend="Have you lived outside the UK in the last 5 years?"
+        required
+        name="livedOutsideUK"
+        options={[
+          { value: "Yes", label: "Yes" },
+          { value: "No", label: "No" },
+        ]}
+        value={livedOutsideUK || ""}
+        onChange={(value) => setValue("livedOutsideUK", value as "Yes" | "No")}
+      />
 
-        <GovUKRadio
-          legend="Have you lived or worked on a British military base abroad in the last 5 years?"
-          required
-          name="militaryBase"
-          options={[
-            { value: "Yes", label: "Yes" },
-            { value: "No", label: "No" },
-          ]}
-          value={militaryBase}
-          onChange={(value) => setValue("militaryBase", value as "Yes" | "No")}
-        />
+      {livedOutsideUK === "Yes" && (
+        <RKInfoBox type="info">
+          If you have lived outside the UK, you must obtain a police check or 'Certificate of
+          Good Conduct' from the relevant countries. You will need to provide these documents to
+          Ready Kids.
+        </RKInfoBox>
+      )}
 
-        {militaryBase === "Yes" && (
-          <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-            <p className="text-sm">
-              We will arrange Ministry of Defence (MoD) checks on your behalf. You may need to
-              complete additional forms.
-            </p>
-          </div>
-        )}
-      </div>
+      <RKRadio
+        legend="Have you lived or worked on a British military base abroad in the last 5 years?"
+        required
+        name="militaryBase"
+        options={[
+          { value: "Yes", label: "Yes" },
+          { value: "No", label: "No" },
+        ]}
+        value={militaryBase || ""}
+        onChange={(value) => setValue("militaryBase", value as "Yes" | "No")}
+      />
+
+      {militaryBase === "Yes" && (
+        <RKInfoBox type="info">
+          We will arrange Ministry of Defence (MoD) checks on your behalf. You may need to
+          complete additional forms.
+        </RKInfoBox>
+      )}
     </div>
   );
 };

@@ -1,8 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { GovUKRadio } from "./GovUKRadio";
-import { GovUKInput } from "./GovUKInput";
-import { AlertTriangle } from "lucide-react";
+import { RKRadio, RKInput, RKSectionTitle, RKInfoBox } from "./rk";
 
 interface Props {
   form: UseFormReturn<Partial<ChildminderApplication>>;
@@ -36,10 +34,12 @@ export const Section5Qualifications = ({ form }: Props) => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-foreground">5. Qualifications & Training</h2>
+      <RKSectionTitle 
+        title="Qualifications & Training"
+        description="Tell us about your relevant qualifications and training."
+      />
 
-      <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-        <h3 className="text-base font-bold mb-2">Required Training Based on Your Age Groups</h3>
+      <RKInfoBox type="info" title="Required Training Based on Your Age Groups">
         <ul className="list-disc list-inside text-sm space-y-1">
           {requires0to5 && <li>Paediatric First Aid (12-hour course) - Required</li>}
           {(requires5to7 || requires8plus) && !requires0to5 && <li>Appropriate First Aid - Required</li>}
@@ -47,12 +47,12 @@ export const Section5Qualifications = ({ form }: Props) => {
           {requires5to7 && <li>EYFS/Childminding Course - Required</li>}
           {requires8plus && <li>Level 2 Qualification - Required</li>}
         </ul>
-      </div>
+      </RKInfoBox>
 
       {/* First Aid */}
       <div className="space-y-4">
-        <h3 className="text-xl font-bold">{firstAidLabel}</h3>
-        <GovUKRadio
+        <h3 className="text-xl font-bold text-rk-secondary font-fraunces">{firstAidLabel}</h3>
+        <RKRadio
           legend={firstAidQuestion}
           required
           name="firstAid.completed"
@@ -60,54 +60,49 @@ export const Section5Qualifications = ({ form }: Props) => {
             { value: "Yes", label: "Yes" },
             { value: "No", label: "No" },
           ]}
-          value={firstAidCompleted}
+          value={firstAidCompleted || ""}
           onChange={(value) => setValue("firstAid.completed", value as "Yes" | "No")}
         />
 
         {firstAidCompleted === "Yes" && (
           <div className="space-y-4">
-            <GovUKInput
+            <RKInput
               label="Training provider"
               required
               {...register("firstAid.provider")}
             />
-            <GovUKInput
+            <RKInput
               label="Completion date"
               type="date"
               required
               widthClass="10"
               {...register("firstAid.completionDate")}
             />
-            <GovUKInput
+            <RKInput
               label="Certificate number"
               {...register("firstAid.certificateNumber")}
             />
 
             {isFirstAidExpired() && (
-              <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-orange))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-                <p className="text-sm font-bold flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  Your first aid certificate is more than 3 years old. You will need to renew it before your registration can be approved.
-                </p>
-              </div>
+              <RKInfoBox type="warning">
+                Your first aid certificate is more than 3 years old. You will need to renew it before your registration can be approved.
+              </RKInfoBox>
             )}
           </div>
         )}
 
         {firstAidCompleted === "No" && (
-          <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-red))] bg-[hsl(var(--govuk-inset-red-bg))]">
-            <p className="text-sm font-bold">
-              You must complete {requires0to5 ? "a 12-hour Paediatric First Aid course" : "an appropriate first aid qualification"} before your registration can be approved.
-            </p>
-          </div>
+          <RKInfoBox type="error">
+            You must complete {requires0to5 ? "a 12-hour Paediatric First Aid course" : "an appropriate first aid qualification"} before your registration can be approved.
+          </RKInfoBox>
         )}
       </div>
 
       {/* Safeguarding */}
       {(requires0to5 || requires5to7) && (
         <div className="space-y-4">
-          <h3 className="text-xl font-bold">Safeguarding Training</h3>
-          <GovUKRadio
+          <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Safeguarding Training</h3>
+          <RKRadio
             legend="Have you completed safeguarding children training?"
             required
             name="safeguarding.completed"
@@ -115,14 +110,14 @@ export const Section5Qualifications = ({ form }: Props) => {
               { value: "Yes", label: "Yes" },
               { value: "No", label: "No" },
             ]}
-            value={watch("safeguarding.completed")}
+            value={watch("safeguarding.completed") || ""}
             onChange={(value) => setValue("safeguarding.completed", value as "Yes" | "No")}
           />
 
           {watch("safeguarding.completed") === "Yes" && (
             <div className="space-y-4">
-              <GovUKInput label="Training provider" {...register("safeguarding.provider")} />
-              <GovUKInput label="Completion date" type="date" widthClass="10" {...register("safeguarding.completionDate")} />
+              <RKInput label="Training provider" {...register("safeguarding.provider")} />
+              <RKInput label="Completion date" type="date" widthClass="10" {...register("safeguarding.completionDate")} />
             </div>
           )}
         </div>
@@ -131,8 +126,8 @@ export const Section5Qualifications = ({ form }: Props) => {
       {/* EYFS/Childminding Course */}
       {requires5to7 && (
         <div className="space-y-4">
-          <h3 className="text-xl font-bold">EYFS/Childminding Course</h3>
-          <GovUKRadio
+          <h3 className="text-xl font-bold text-rk-secondary font-fraunces">EYFS/Childminding Course</h3>
+          <RKRadio
             legend="Have you completed an EYFS or childminding-specific course?"
             required
             name="eyfsChildminding.completed"
@@ -140,14 +135,14 @@ export const Section5Qualifications = ({ form }: Props) => {
               { value: "Yes", label: "Yes" },
               { value: "No", label: "No" },
             ]}
-            value={watch("eyfsChildminding.completed")}
+            value={watch("eyfsChildminding.completed") || ""}
             onChange={(value) => setValue("eyfsChildminding.completed", value as "Yes" | "No")}
           />
 
           {watch("eyfsChildminding.completed") === "Yes" && (
             <div className="space-y-4">
-              <GovUKInput label="Training provider" {...register("eyfsChildminding.provider")} />
-              <GovUKInput label="Completion date" type="date" widthClass="10" {...register("eyfsChildminding.completionDate")} />
+              <RKInput label="Training provider" {...register("eyfsChildminding.provider")} />
+              <RKInput label="Completion date" type="date" widthClass="10" {...register("eyfsChildminding.completionDate")} />
             </div>
           )}
         </div>
@@ -156,8 +151,8 @@ export const Section5Qualifications = ({ form }: Props) => {
       {/* Level 2 Qualification */}
       {requires8plus && (
         <div className="space-y-4">
-          <h3 className="text-xl font-bold">Level 2 Qualification</h3>
-          <GovUKRadio
+          <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Level 2 Qualification</h3>
+          <RKRadio
             legend="Do you hold a Level 2 qualification in childcare or education?"
             required
             name="level2Qual.completed"
@@ -165,14 +160,14 @@ export const Section5Qualifications = ({ form }: Props) => {
               { value: "Yes", label: "Yes" },
               { value: "No", label: "No" },
             ]}
-            value={watch("level2Qual.completed")}
+            value={watch("level2Qual.completed") || ""}
             onChange={(value) => setValue("level2Qual.completed", value as "Yes" | "No")}
           />
 
           {watch("level2Qual.completed") === "Yes" && (
             <div className="space-y-4">
-              <GovUKInput label="Qualification name" {...register("level2Qual.provider")} />
-              <GovUKInput label="Completion date" type="date" widthClass="10" {...register("level2Qual.completionDate")} />
+              <RKInput label="Qualification name" {...register("level2Qual.provider")} />
+              <RKInput label="Completion date" type="date" widthClass="10" {...register("level2Qual.completionDate")} />
             </div>
           )}
         </div>

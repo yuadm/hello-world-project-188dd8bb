@@ -1,10 +1,7 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { GovUKInput } from "./GovUKInput";
-import { GovUKTextarea } from "./GovUKTextarea";
-import { GovUKButton } from "./GovUKButton";
-import { GovUKRadio } from "./GovUKRadio";
-import { Plus, Trash2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { RKInput, RKTextarea, RKButton, RKRadio, RKSectionTitle, RKInfoBox, RKCheckbox } from "./rk";
+import { Plus, Trash2 } from "lucide-react";
 import { calculateEmploymentCoverage } from "@/lib/employmentHistoryCalculator";
 import { format } from "date-fns";
 
@@ -33,42 +30,39 @@ export const Section6Employment = ({ form }: Props) => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-foreground">6. Employment History & References</h2>
+      <RKSectionTitle 
+        title="Employment History & References"
+        description="Tell us about your work history and provide references."
+      />
 
-      <h3 className="text-xl font-bold">Employment/Education History</h3>
-      <p className="text-base">
+      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Employment/Education History</h3>
+      <p className="text-sm text-rk-text-light">
         Please provide details of your employment or education for the last 5 years. We need a complete 5-year history.
       </p>
 
       {/* Coverage Indicator */}
       {employmentHistory.length > 0 && (
-        <div className={`p-4 border-l-[10px] ${
-          coverage.isComplete 
-            ? "border-[hsl(var(--govuk-green))] bg-[hsl(var(--govuk-inset-blue-bg))]"
-            : "border-[hsl(var(--govuk-orange))] bg-[hsl(var(--govuk-inset-blue-bg))]"
-        }`}>
-          <div className="flex items-start gap-2">
-            {coverage.isComplete ? (
-              <CheckCircle2 className="h-5 w-5 text-[hsl(var(--govuk-green))] mt-0.5 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="h-5 w-5 text-[hsl(var(--govuk-orange))] mt-0.5 flex-shrink-0" />
-            )}
-            <div className="space-y-2">
-              <p className="text-sm font-bold">
-                5-Year Coverage: {coverage.percentageCovered}%
-              </p>
-              <div className="w-full bg-white border border-border rounded-none h-6 overflow-hidden">
+        <div className="space-y-3">
+          {coverage.isComplete ? (
+            <RKInfoBox type="success" title={`5-Year Coverage: ${coverage.percentageCovered}%`}>
+              <div className="w-full bg-white border border-rk-border rounded-lg h-4 overflow-hidden mt-2">
                 <div
-                  className={`h-full ${
-                    coverage.isComplete ? "bg-[hsl(var(--govuk-green))]" : "bg-[hsl(var(--govuk-orange))]"
-                  }`}
+                  className="h-full bg-rk-success"
                   style={{ width: `${Math.min(coverage.percentageCovered, 100)}%` }}
                 />
               </div>
-              <p className="text-sm">
-                {coverage.isComplete
-                  ? "✓ Complete 5-year employment/education history provided"
-                  : `You have covered ${coverage.coveredMonths} of 60 months (5 years)`}
+              <p className="text-sm mt-2">✓ Complete 5-year employment/education history provided</p>
+            </RKInfoBox>
+          ) : (
+            <RKInfoBox type="warning" title={`5-Year Coverage: ${coverage.percentageCovered}%`}>
+              <div className="w-full bg-white border border-rk-border rounded-lg h-4 overflow-hidden mt-2">
+                <div
+                  className="h-full bg-rk-warning"
+                  style={{ width: `${Math.min(coverage.percentageCovered, 100)}%` }}
+                />
+              </div>
+              <p className="text-sm mt-2">
+                You have covered {coverage.coveredMonths} of 60 months (5 years)
               </p>
               {coverage.hasGaps && coverage.gaps.length > 0 && (
                 <div className="mt-2">
@@ -85,53 +79,51 @@ export const Section6Employment = ({ form }: Props) => {
                   </p>
                 </div>
               )}
-            </div>
-          </div>
+            </RKInfoBox>
+          )}
         </div>
       )}
 
       {employmentHistory.length === 0 && (
-        <div className="p-4 border-l-[10px] border-[hsl(var(--govuk-blue))] bg-[hsl(var(--govuk-inset-blue-bg))]">
-          <p className="text-sm">
-            Click "Add employment/education entry" below to start providing your 5-year history.
-          </p>
-        </div>
+        <RKInfoBox type="info">
+          Click "Add employment/education entry" below to start providing your 5-year history.
+        </RKInfoBox>
       )}
 
       {employmentHistory.map((_, index) => (
         <div
           key={index}
-          className="p-6 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))] space-y-4"
+          className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
         >
           <div className="flex justify-between items-center">
-            <h4 className="font-semibold">Employment/Education Entry {index + 1}</h4>
+            <h4 className="font-semibold text-rk-text">Employment/Education Entry {index + 1}</h4>
             <button
               type="button"
               onClick={() => removeEmployment(index)}
-              className="text-[hsl(var(--govuk-red))] hover:underline flex items-center gap-1"
+              className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 text-sm"
             >
               <Trash2 className="h-4 w-4" />
               Remove
             </button>
           </div>
-          <GovUKInput
+          <RKInput
             label="Employer/Institution"
             {...register(`employmentHistory.${index}.employer`)}
           />
-          <GovUKInput label="Role/Course" {...register(`employmentHistory.${index}.role`)} />
-          <div className="grid grid-cols-2 gap-4">
-            <GovUKInput
+          <RKInput label="Role/Course" {...register(`employmentHistory.${index}.role`)} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <RKInput
               label="Start date"
               type="date"
               {...register(`employmentHistory.${index}.startDate`)}
             />
-            <GovUKInput
+            <RKInput
               label="End date"
               type="date"
               {...register(`employmentHistory.${index}.endDate`)}
             />
           </div>
-          <GovUKTextarea
+          <RKTextarea
             label="Reason for leaving"
             rows={2}
             {...register(`employmentHistory.${index}.reasonForLeaving`)}
@@ -139,7 +131,7 @@ export const Section6Employment = ({ form }: Props) => {
         </div>
       ))}
 
-      <GovUKButton
+      <RKButton
         type="button"
         variant="secondary"
         onClick={addEmployment}
@@ -147,16 +139,16 @@ export const Section6Employment = ({ form }: Props) => {
       >
         <Plus className="h-4 w-4" />
         Add employment/education entry
-      </GovUKButton>
+      </RKButton>
 
-      <GovUKTextarea
+      <RKTextarea
         label="Explain any gaps in employment/education history"
         hint="If there are gaps in your 5-year history, please explain what you were doing during those periods (e.g., caring for family, traveling, unemployed, etc.)."
         rows={4}
         {...register("employmentGaps")}
       />
 
-      <GovUKRadio
+      <RKRadio
         legend="Have you previously worked or volunteered with children?"
         required
         name="childVolunteered"
@@ -164,43 +156,36 @@ export const Section6Employment = ({ form }: Props) => {
           { value: "Yes", label: "Yes" },
           { value: "No", label: "No" },
         ]}
-        value={childVolunteered}
+        value={childVolunteered || ""}
         onChange={(value) => setValue("childVolunteered", value as "Yes" | "No")}
       />
 
       {childVolunteered === "Yes" && (
-        <div className="flex items-start space-x-3 p-4 border border-border rounded">
-          <input
-            type="checkbox"
-            id="childVolunteeredConsent"
-            {...register("childVolunteeredConsent")}
-            className="mt-1 w-6 h-6 cursor-pointer appearance-none border-2 border-[hsl(var(--govuk-black))] checked:before:content-['✔'] checked:before:block checked:before:text-center checked:before:text-xl checked:before:leading-5"
-          />
-          <div className="space-y-1">
-            <label htmlFor="childVolunteeredConsent" className="text-base font-medium cursor-pointer">
-              I consent to Ready Kids contacting my previous employers/organizations
-            </label>
-            <p className="text-sm text-[hsl(var(--govuk-text-secondary))]">
-              We may need to verify your experience working with children.
-            </p>
-          </div>
-        </div>
+        <RKCheckbox
+          name="childVolunteeredConsent"
+          label="I consent to Ready Kids contacting my previous employers/organizations"
+          hint="We may need to verify your experience working with children."
+          checked={watch("childVolunteeredConsent") || false}
+          onChange={(checked) => setValue("childVolunteeredConsent", checked)}
+        />
       )}
 
-      <h3 className="text-xl font-bold border-t pt-6">References</h3>
-      <p className="text-base">Please provide two references who have known you for at least 2 years.</p>
+      <div className="rk-divider" />
+
+      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">References</h3>
+      <p className="text-sm text-rk-text-light">Please provide two references who have known you for at least 2 years.</p>
 
       {/* Reference 1 */}
-      <div className="p-6 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))] space-y-4">
-        <h4 className="font-semibold">Reference 1</h4>
-        <GovUKInput label="Full name" required {...register("reference1Name")} />
-        <GovUKInput label="Relationship to you" required {...register("reference1Relationship")} />
-        <GovUKInput
+      <div className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4">
+        <h4 className="font-semibold text-rk-text">Reference 1</h4>
+        <RKInput label="Full name" required {...register("reference1Name")} />
+        <RKInput label="Relationship to you" required {...register("reference1Relationship")} />
+        <RKInput
           label="Contact details (email or phone)"
           required
           {...register("reference1Contact")}
         />
-        <GovUKRadio
+        <RKRadio
           legend="Is this a childcare-related reference?"
           required
           name="reference1Childcare"
@@ -208,22 +193,22 @@ export const Section6Employment = ({ form }: Props) => {
             { value: "Yes", label: "Yes" },
             { value: "No", label: "No" },
           ]}
-          value={watch("reference1Childcare")}
+          value={watch("reference1Childcare") || ""}
           onChange={(value) => setValue("reference1Childcare", value as "Yes" | "No")}
         />
       </div>
 
       {/* Reference 2 */}
-      <div className="p-6 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))] space-y-4">
-        <h4 className="font-semibold">Reference 2</h4>
-        <GovUKInput label="Full name" required {...register("reference2Name")} />
-        <GovUKInput label="Relationship to you" required {...register("reference2Relationship")} />
-        <GovUKInput
+      <div className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4">
+        <h4 className="font-semibold text-rk-text">Reference 2</h4>
+        <RKInput label="Full name" required {...register("reference2Name")} />
+        <RKInput label="Relationship to you" required {...register("reference2Relationship")} />
+        <RKInput
           label="Contact details (email or phone)"
           required
           {...register("reference2Contact")}
         />
-        <GovUKRadio
+        <RKRadio
           legend="Is this a childcare-related reference?"
           required
           name="reference2Childcare"
@@ -231,7 +216,7 @@ export const Section6Employment = ({ form }: Props) => {
             { value: "Yes", label: "Yes" },
             { value: "No", label: "No" },
           ]}
-          value={watch("reference2Childcare")}
+          value={watch("reference2Childcare") || ""}
           onChange={(value) => setValue("reference2Childcare", value as "Yes" | "No")}
         />
       </div>

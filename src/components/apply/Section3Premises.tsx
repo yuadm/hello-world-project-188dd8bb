@@ -1,10 +1,7 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { GovUKInput } from "./GovUKInput";
-import { GovUKRadio } from "./GovUKRadio";
-import { GovUKButton } from "./GovUKButton";
-import { GovUKTextarea } from "./GovUKTextarea";
-import { GovUKAutocomplete } from "./GovUKAutocomplete";
+import { RKInput, RKRadio, RKButton, RKTextarea, RKSectionTitle, RKInfoBox } from "./rk";
+import { RKAutocomplete } from "./rk/RKAutocomplete";
 import { UK_LOCAL_AUTHORITIES } from "@/lib/ukLocalAuthorities";
 import { Plus, Trash2, Search } from "lucide-react";
 import { useState } from "react";
@@ -67,11 +64,14 @@ export const Section3Premises = ({ form }: Props) => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-3xl font-bold text-foreground">3. Your Childminding Premises</h2>
+      <RKSectionTitle 
+        title="Your Childminding Premises"
+        description="Tell us about where you will provide childcare services."
+      />
 
-      <h3 className="text-xl font-bold">Primary Childcare Premises</h3>
+      <h3 className="text-xl font-bold text-rk-secondary font-fraunces">Primary Childcare Premises</h3>
 
-      <GovUKAutocomplete
+      <RKAutocomplete
         label="Local authority / council"
         hint="This is the local authority where the childcare premises is located. Start typing to search."
         required
@@ -81,7 +81,7 @@ export const Section3Premises = ({ form }: Props) => {
         placeholder="Start typing..."
       />
 
-      <GovUKRadio
+      <RKRadio
         legend="What type of premises will you primarily work from?"
         required
         name="premisesType"
@@ -94,7 +94,7 @@ export const Section3Premises = ({ form }: Props) => {
       />
 
       {premisesType === "Domestic" && (
-        <GovUKRadio
+        <RKRadio
           legend="Will this be your own home address?"
           required
           name="sameAddress"
@@ -108,14 +108,14 @@ export const Section3Premises = ({ form }: Props) => {
       )}
 
       {showChildcareAddress && (
-        <div className="space-y-4 p-4 border-l-[10px] border-[hsl(var(--govuk-grey-border))] bg-[hsl(var(--govuk-inset-grey))]">
-          <p className="text-sm">
+        <div className="space-y-4 p-5 bg-rk-bg-form border border-rk-border rounded-xl">
+          <p className="text-sm text-rk-text-light">
             Please provide the full address of the premises. If it is a domestic address that is not
             your own home, we will need to conduct suitability checks on everyone living there aged
             16 or over.
           </p>
           <div>
-            <GovUKInput
+            <RKInput
               label="Postcode"
               required
               widthClass="10"
@@ -123,7 +123,7 @@ export const Section3Premises = ({ form }: Props) => {
               {...register("childcareAddress.postcode")}
             />
             <div className="mt-3">
-              <GovUKButton
+              <RKButton
                 type="button"
                 variant="secondary"
                 onClick={handleChildcarePostcodeLookup}
@@ -132,64 +132,64 @@ export const Section3Premises = ({ form }: Props) => {
               >
                 <Search className="h-4 w-4" />
                 {isLookingUpChildcarePostcode ? "Looking up..." : "Find address"}
-              </GovUKButton>
+              </RKButton>
             </div>
           </div>
-          <GovUKInput
+          <RKInput
             label="Childcare Address - Line 1"
             required
             {...register("childcareAddress.line1")}
           />
-          <GovUKInput label="Address line 2" {...register("childcareAddress.line2")} />
-          <GovUKInput label="Town or city" required {...register("childcareAddress.town")} />
+          <RKInput label="Address line 2" {...register("childcareAddress.line2")} />
+          <RKInput label="Town or city" required {...register("childcareAddress.town")} />
         </div>
       )}
 
-      <GovUKRadio
+      <RKRadio
         legend="Will you regularly use any additional premises for childminding?"
-        hint="You do not need to tell us about routine outings (e.g., parks, libraries). This is for regular use of other settings (e.g., using a local hall for 50% of the time)."
+        hint="You do not need to tell us about routine outings (e.g., parks, libraries). This is for regular use of other settings."
         required
         name="useAdditionalPremises"
         options={[
           { value: "Yes", label: "Yes" },
           { value: "No", label: "No" },
         ]}
-        value={useAdditionalPremises}
+        value={useAdditionalPremises || ""}
         onChange={(value) => setValue("useAdditionalPremises", value as "Yes" | "No")}
       />
 
       {useAdditionalPremises === "Yes" && (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold">Additional Premises Details</h3>
+          <h3 className="text-lg font-bold text-rk-secondary">Additional Premises Details</h3>
           {additionalPremises.map((_, index) => (
             <div
               key={index}
-              className="p-4 bg-[hsl(var(--govuk-grey-background))] border-l-4 border-[hsl(var(--govuk-grey-border))] space-y-4"
+              className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
             >
               <div className="flex justify-between items-center">
-                <h4 className="font-semibold">Additional Premises {index + 1}</h4>
+                <h4 className="font-semibold text-rk-text">Additional Premises {index + 1}</h4>
                 <button
                   type="button"
                   onClick={() => removeAdditionalPremises(index)}
-                  className="text-[hsl(var(--govuk-red))] hover:underline flex items-center gap-1"
+                  className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 text-sm"
                 >
                   <Trash2 className="h-4 w-4" />
                   Remove
                 </button>
               </div>
-              <GovUKTextarea
+              <RKTextarea
                 label="Full address"
                 {...register(`additionalPremises.${index}.address`)}
                 rows={3}
               />
-              <GovUKTextarea
+              <RKTextarea
                 label="Reason for using this premises"
                 {...register(`additionalPremises.${index}.reason`)}
                 rows={2}
               />
             </div>
           ))}
-          <GovUKButton
+          <RKButton
             type="button"
             variant="secondary"
             onClick={addAdditionalPremises}
@@ -197,11 +197,13 @@ export const Section3Premises = ({ form }: Props) => {
           >
             <Plus className="h-4 w-4" />
             Add premises
-          </GovUKButton>
+          </RKButton>
         </div>
       )}
 
-      <GovUKRadio
+      <div className="rk-divider" />
+
+      <RKRadio
         legend="Do you have an outdoor space available for children at your premises?"
         required
         name="outdoorSpace"
@@ -209,11 +211,11 @@ export const Section3Premises = ({ form }: Props) => {
           { value: "Yes", label: "Yes" },
           { value: "No", label: "No" },
         ]}
-        value={watch("outdoorSpace")}
+        value={watch("outdoorSpace") || ""}
         onChange={(value) => setValue("outdoorSpace", value as "Yes" | "No")}
       />
 
-      <GovUKRadio
+      <RKRadio
         legend="Do you have any pets at your premises?"
         required
         name="pets"
@@ -221,12 +223,12 @@ export const Section3Premises = ({ form }: Props) => {
           { value: "Yes", label: "Yes" },
           { value: "No", label: "No" },
         ]}
-        value={pets}
+        value={pets || ""}
         onChange={(value) => setValue("pets", value as "Yes" | "No")}
       />
 
       {pets === "Yes" && (
-        <GovUKTextarea
+        <RKTextarea
           label="Please provide details of your pets"
           hint="Include type of animal, breed, temperament, and how they will be managed during childcare hours."
           required
