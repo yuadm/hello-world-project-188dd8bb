@@ -121,16 +121,19 @@ export interface ChildminderApplication {
   // Section 6: Employment
   employmentHistory: EmploymentEntry[];
   employmentGaps?: string;
+  workedWithChildren?: "Yes" | "No";
   childVolunteered: "Yes" | "No";
   childVolunteeredConsent?: boolean;
   reference1Name: string;
   reference1Relationship: string;
   reference1Contact: string;
-  reference1Childcare: "Yes" | "No";
+  reference1Phone?: string;
+  reference1ChildcareRole?: "Yes" | "No";
   reference2Name: string;
   reference2Relationship: string;
   reference2Contact: string;
-  reference2Childcare: "Yes" | "No";
+  reference2Phone?: string;
+  reference2ChildcareRole?: "Yes" | "No";
 
   // Section 7: People Connected
   assistants?: AssistantEntry[];

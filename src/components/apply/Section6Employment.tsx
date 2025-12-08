@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKInput, RKSectionTitle } from "./rk";
+import { RKInput, RKSectionTitle, RKTextarea, RKRadio } from "./rk";
 import { Plus } from "lucide-react";
 
 interface Props {
@@ -91,6 +91,24 @@ export const Section6Employment = ({ form }: Props) => {
           <Plus className="h-4 w-4" />
           Add employment
         </button>
+
+        <RKTextarea
+          label="Explanation for gaps in employment (if any)"
+          hint="Please explain any periods not covered above (e.g., parental leave, travel, unemployment)."
+          {...register("employmentGaps")}
+        />
+
+        <RKRadio
+          legend="Have you been employed or volunteered to work with children in the last 5 years?"
+          required
+          name="workedWithChildren"
+          options={[
+            { value: "Yes", label: "Yes" },
+            { value: "No", label: "No" },
+          ]}
+          value={(watch("workedWithChildren") as string) || ""}
+          onChange={(value) => setValue("workedWithChildren", value as "Yes" | "No")}
+        />
       </div>
 
       {/* References */}
@@ -114,17 +132,28 @@ export const Section6Employment = ({ form }: Props) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <RKInput
-              label="Email"
+              label="Email address"
               type="email"
               required
               {...register("reference1Contact")}
             />
             <RKInput
-              label="Phone"
+              label="Phone number"
               type="tel"
               {...register("reference1Phone" as any)}
             />
           </div>
+          <RKRadio
+            legend="Did you work with this person in a role involving children?"
+            required
+            name="reference1ChildcareRole"
+            options={[
+              { value: "Yes", label: "Yes" },
+              { value: "No", label: "No" },
+            ]}
+            value={(watch("reference1ChildcareRole") as string) || ""}
+            onChange={(value) => setValue("reference1ChildcareRole", value as "Yes" | "No")}
+          />
         </div>
 
         {/* Reference 2 */}
@@ -141,17 +170,28 @@ export const Section6Employment = ({ form }: Props) => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <RKInput
-              label="Email"
+              label="Email address"
               type="email"
               required
               {...register("reference2Contact")}
             />
             <RKInput
-              label="Phone"
+              label="Phone number"
               type="tel"
               {...register("reference2Phone" as any)}
             />
           </div>
+          <RKRadio
+            legend="Did you work with this person in a role involving children?"
+            required
+            name="reference2ChildcareRole"
+            options={[
+              { value: "Yes", label: "Yes" },
+              { value: "No", label: "No" },
+            ]}
+            value={(watch("reference2ChildcareRole") as string) || ""}
+            onChange={(value) => setValue("reference2ChildcareRole", value as "Yes" | "No")}
+          />
         </div>
       </div>
     </div>
