@@ -690,7 +690,7 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
                 </View>
                 <View style={styles.qualGridItem}>
                   <Text style={styles.cardSubtitle}>Childcare Related</Text>
-                  <Text style={styles.cardText}>{application.reference1Childcare || "N/A"}</Text>
+                  <Text style={styles.cardText}>{application.reference1ChildcareRole || "N/A"}</Text>
                 </View>
               </View>
             </View>
@@ -712,7 +712,7 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
                 </View>
                 <View style={styles.qualGridItem}>
                   <Text style={styles.cardSubtitle}>Childcare Related</Text>
-                  <Text style={styles.cardText}>{application.reference2Childcare || "N/A"}</Text>
+                  <Text style={styles.cardText}>{application.reference2ChildcareRole || "N/A"}</Text>
                 </View>
               </View>
             </View>

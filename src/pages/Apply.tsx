@@ -217,13 +217,13 @@ const Apply = () => {
               name: data.reference1Name,
               relationship: data.reference1Relationship,
               contact: data.reference1Contact,
-              childcare: data.reference1Childcare
+              childcare: data.reference1ChildcareRole
             },
             reference2: {
               name: data.reference2Name,
               relationship: data.reference2Relationship,
               contact: data.reference2Contact,
-              childcare: data.reference2Childcare
+              childcare: data.reference2ChildcareRole
             }
           },
           adults_in_home: data.adultsInHome,

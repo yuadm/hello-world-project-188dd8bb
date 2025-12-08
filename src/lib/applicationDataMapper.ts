@@ -159,11 +159,11 @@ export function dbToFormData(dbApp: DBApplication): Partial<ChildminderApplicati
     reference1Name: references.reference1?.name,
     reference1Relationship: references.reference1?.relationship,
     reference1Contact: references.reference1?.contact,
-    reference1Childcare: references.reference1?.childcare,
+    reference1ChildcareRole: references.reference1?.childcare,
     reference2Name: references.reference2?.name,
     reference2Relationship: references.reference2?.relationship,
     reference2Contact: references.reference2?.contact,
-    reference2Childcare: references.reference2?.childcare,
+    reference2ChildcareRole: references.reference2?.childcare,
 
     // Section 7: People Connected
     assistants: dbApp.people_regular_contact || [],
@@ -279,13 +279,13 @@ export function formToDbData(formData: Partial<ChildminderApplication>) {
         name: formData.reference1Name,
         relationship: formData.reference1Relationship,
         contact: formData.reference1Contact,
-        childcare: formData.reference1Childcare,
+        childcare: formData.reference1ChildcareRole,
       },
       reference2: {
         name: formData.reference2Name,
         relationship: formData.reference2Relationship,
         contact: formData.reference2Contact,
-        childcare: formData.reference2Childcare,
+        childcare: formData.reference2ChildcareRole,
       },
     },
 

@@ -105,6 +105,102 @@ export const Section4Service = ({ form }: Props) => {
         />
       )}
 
+      {workWithOthers === "Yes" && numberOfAssistants > 0 && (
+        <>
+          <div className="rk-divider" />
+          
+          <h3 className="rk-subsection-title">People Connected to Your Application</h3>
+          <p className="text-sm text-rk-text-light -mt-2 mb-4">
+            We must ensure the suitability of everyone connected to your registration. This includes staff working with you and people living or working at the premises.
+          </p>
+
+          <h4 className="font-semibold text-rk-text mb-2">Assistants and Co-childminders Details</h4>
+          <RKInfoBox type="info">
+            Anyone working with you must complete a full suitability check (Form CMA-A1). 
+            Please provide their basic details below so we can initiate their application.
+          </RKInfoBox>
+          
+          {assistants.map((_, index) => (
+            <div
+              key={index}
+              className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-semibold text-lg text-rk-text">Person {index + 1}</h4>
+                <button
+                  type="button"
+                  onClick={() => removeAssistant(index)}
+                  className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 font-medium text-sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Remove
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <RKInput
+                  label="First name"
+                  required
+                  {...register(`assistants.${index}.firstName`)}
+                />
+                <RKInput
+                  label="Last name"
+                  required
+                  {...register(`assistants.${index}.lastName`)}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <RKInput
+                  label="Date of birth"
+                  type="date"
+                  hint="dd/mm/yyyy"
+                  required
+                  {...register(`assistants.${index}.dob`)}
+                />
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-rk-text">
+                    Role<span className="text-rk-error ml-1">*</span>
+                  </label>
+                  <select
+                    className="rk-input w-full"
+                    {...register(`assistants.${index}.role`)}
+                  >
+                    <option value="">Select role</option>
+                    <option value="Assistant">Assistant</option>
+                    <option value="Co-childminder">Co-childminder</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <RKInput
+                  label="Email address"
+                  type="email"
+                  required
+                  {...register(`assistants.${index}.email`)}
+                />
+                <RKInput
+                  label="Mobile number"
+                  type="tel"
+                  {...register(`assistants.${index}.phone`)}
+                />
+              </div>
+            </div>
+          ))}
+          
+          {assistants.length < numberOfAssistants && (
+            <RKButton
+              type="button"
+              variant="secondary"
+              onClick={addAssistant}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add person
+            </RKButton>
+          )}
+        </>
+      )}
+
       {/* Visual Capacity Calculator - Bento Style */}
       <div className="rk-capacity-wrapper">
         <div className="rk-capacity-header">
@@ -142,72 +238,6 @@ export const Section4Service = ({ form }: Props) => {
         These limits are based on EYFS statutory requirements. Your actual registered numbers may vary based on your premises and Ofsted assessment.
       </RKInfoBox>
 
-      {workWithOthers === "Yes" && numberOfAssistants > 0 && (
-        <>
-          <div className="rk-divider" />
-          
-          <h3 className="rk-subsection-title">Assistants Details</h3>
-
-          <RKInfoBox type="info" title="Suitability Checks Required">
-            Anyone working with you must complete a full suitability check (Form CMA-A1). 
-            Please provide their basic details below so we can initiate their application.
-          </RKInfoBox>
-          
-          {assistants.map((_, index) => (
-            <div
-              key={index}
-              className="p-5 bg-rk-bg-form border border-rk-border rounded-xl space-y-4"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="font-semibold text-lg text-rk-text">Person {index + 1}</h4>
-                <button
-                  type="button"
-                  onClick={() => removeAssistant(index)}
-                  className="text-rk-error hover:text-rk-error/80 flex items-center gap-1 font-medium text-sm"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Remove
-                </button>
-              </div>
-              
-              <div className="rk-address-grid">
-                <RKInput
-                  label="First name"
-                  required
-                  {...register(`assistants.${index}.firstName`)}
-                />
-                <RKInput
-                  label="Last name"
-                  required
-                  {...register(`assistants.${index}.lastName`)}
-                />
-                <RKInput
-                  label="Date of birth"
-                  type="date"
-                  required
-                  {...register(`assistants.${index}.dob`)}
-                />
-                <RKInput
-                  label="Email address"
-                  type="email"
-                  required
-                  {...register(`assistants.${index}.email`)}
-                />
-              </div>
-            </div>
-          ))}
-          
-          <RKButton
-            type="button"
-            variant="secondary"
-            onClick={addAssistant}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add person
-          </RKButton>
-        </>
-      )}
 
       <div className="rk-divider" />
 
