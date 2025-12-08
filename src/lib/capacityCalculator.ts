@@ -42,7 +42,7 @@ export function calculateCapacityRatios(
     totalAdults,
     maxUnder1: totalAdults * 1,
     maxUnder5: totalAdults * 3,
-    maxUnder8: 6, // Fixed maximum regardless of adults
+    maxUnder8: totalAdults * 6,
   };
 }
 
