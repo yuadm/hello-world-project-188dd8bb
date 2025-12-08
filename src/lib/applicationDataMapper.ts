@@ -196,12 +196,15 @@ export function dbToFormData(dbApp: DBApplication): Partial<ChildminderApplicati
     offenceHistory: dbApp.criminal_convictions as "Yes" | "No",
     offenceDetails: offenceDetails,
 
-    // Section 9: Declaration
-    consent1: dbApp.declaration_confirmed,
-    consent2: dbApp.declaration_change_notification,
-    consent3: dbApp.declaration_information_sharing,
-    consent4: dbApp.declaration_data_processing,
-    consent5: dbApp.declaration_inspection_cooperation,
+    // Section 9: Consent & Declaration
+    consentDBSChecks: dbApp.declaration_inspection_cooperation,
+    consentLAContact: dbApp.declaration_confirmed,
+    consentLAShare: dbApp.declaration_information_sharing,
+    consentOfstedSharing: dbApp.declaration_change_notification,
+    consentDataUse: dbApp.declaration_data_processing,
+    consentDataProtection: dbApp.declaration_data_processing,
+    declarationTruth: dbApp.declaration_confirmed,
+    declarationNotify: dbApp.declaration_change_notification,
     signatureFullName: dbApp.declaration_signature,
     declarationPrintName: dbApp.declaration_signature,
     signatureDate: dbApp.declaration_date,
@@ -322,11 +325,11 @@ export function formToDbData(formData: Partial<ChildminderApplication>) {
     safeguarding_details: formData.socialServicesDetails,
 
     // Declaration
-    declaration_confirmed: formData.consent5,
-    declaration_change_notification: formData.consent5,
-    declaration_inspection_cooperation: formData.consent5,
-    declaration_information_sharing: formData.consent3,
-    declaration_data_processing: formData.consent4,
+    declaration_confirmed: formData.declarationTruth,
+    declaration_change_notification: formData.declarationNotify,
+    declaration_inspection_cooperation: formData.consentDBSChecks,
+    declaration_information_sharing: formData.consentLAShare,
+    declaration_data_processing: formData.consentDataProtection,
     declaration_signature: formData.signatureFullName,
     declaration_date: formData.signatureDate,
     payment_method: null,

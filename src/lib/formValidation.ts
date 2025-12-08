@@ -356,11 +356,17 @@ export function validateSection8(data: Partial<ChildminderApplication>): Validat
 export function validateSection9(data: Partial<ChildminderApplication>): ValidationResult {
   const errors: string[] = [];
 
-  if (!data.consent1) errors.push("You must agree to consent statement 1");
-  if (!data.consent2) errors.push("You must agree to consent statement 2");
-  if (!data.consent3) errors.push("You must agree to consent statement 3");
-  if (!data.consent4) errors.push("You must agree to consent statement 4");
-  if (!data.consent5) errors.push("You must agree to consent statement 5");
+  // A. Consent to Background Checks
+  if (!data.consentDBSChecks) errors.push("You must consent to background checks");
+  if (!data.consentLAContact) errors.push("You must authorise contact with local authority children's services");
+  if (!data.consentLAShare) errors.push("You must authorise local authorities to share information");
+  // B. Data Sharing & Use
+  if (!data.consentOfstedSharing) errors.push("You must acknowledge data sharing with Ofsted");
+  if (!data.consentDataUse) errors.push("You must acknowledge how your data will be used");
+  if (!data.consentDataProtection) errors.push("You must acknowledge data protection handling");
+  // C. Declarations
+  if (!data.declarationTruth) errors.push("You must confirm information is true and accurate");
+  if (!data.declarationNotify) errors.push("You must agree to notify of changes");
 
   if (!data.signatureFullName) {
     errors.push("Signature is required");

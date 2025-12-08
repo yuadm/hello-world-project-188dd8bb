@@ -163,12 +163,19 @@ export interface ChildminderApplication {
   offenceHistory: "Yes" | "No";
   offenceDetails?: OffenceEntry[];
 
-  // Section 9: Declaration
-  consent1: boolean;
-  consent2: boolean;
-  consent3: boolean;
-  consent4: boolean;
-  consent5: boolean;
+  // Section 9: Consent & Declaration
+  // A. Consent to Background Checks
+  consentDBSChecks: boolean;
+  consentLAContact: boolean;
+  consentLAShare: boolean;
+  // B. Data Sharing & Use
+  consentOfstedSharing: boolean;
+  consentDataUse: boolean;
+  consentDataProtection: boolean;
+  // C. Declarations
+  declarationTruth: boolean;
+  declarationNotify: boolean;
+  // Signature
   signatureFullName: string;
   declarationPrintName: string;
   signatureDate: string;

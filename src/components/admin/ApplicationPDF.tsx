@@ -907,43 +907,72 @@ export const ApplicationPDF = ({ application, applicationId, submittedDate, stat
 
         {/* Section 9: Declaration */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>9. Declaration</Text>
+          <Text style={styles.sectionTitle}>9. Consent & Declaration</Text>
           
           <View style={styles.subsection}>
-            <Text style={styles.dataLabel}>Local Authority Consent Statements</Text>
+            <Text style={styles.dataLabel}>A. Consent to Background Checks</Text>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.consent1 && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consentDBSChecks && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                Consent to share personal information with local authority.
+                Consent to DBS, local authority, referees, and GP checks.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.consent2 && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consentLAContact && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                Understanding that local authority may hold relevant information.
+                Authorise Ready Kids to contact children's services departments.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.consent3 && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consentLAShare && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                Consent to Ready Kids requesting information from local authority.
+                Authorise local authorities to share relevant information.
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.subsection}>
+            <Text style={styles.dataLabel}>B. Data Sharing & Use</Text>
+            
+            <View style={styles.checkboxRow}>
+              <View style={[styles.checkbox, application.consentOfstedSharing && styles.checkboxChecked]} />
+              <Text style={styles.checkboxText}>
+                Data shared with Ofsted and statutory bodies as required.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.consent4 && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consentDataUse && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                Understanding information will be used for suitability assessment.
+                Information used for suitability assessment only.
               </Text>
             </View>
             
             <View style={styles.checkboxRow}>
-              <View style={[styles.checkbox, application.consent5 && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, application.consentDataProtection && styles.checkboxChecked]} />
               <Text style={styles.checkboxText}>
-                Confirmation that all information is true and complete.
+                Data handled per data protection law and privacy notice.
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.subsection}>
+            <Text style={styles.dataLabel}>C. Declarations</Text>
+            
+            <View style={styles.checkboxRow}>
+              <View style={[styles.checkbox, application.declarationTruth && styles.checkboxChecked]} />
+              <Text style={styles.checkboxText}>
+                Information provided is true, accurate, and complete.
+              </Text>
+            </View>
+            
+            <View style={styles.checkboxRow}>
+              <View style={[styles.checkbox, application.declarationNotify && styles.checkboxChecked]} />
+              <Text style={styles.checkboxText}>
+                Will notify Ready Kids of changes within 14 days.
               </Text>
             </View>
           </View>
