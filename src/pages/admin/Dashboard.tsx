@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { Turning16Card } from "@/components/admin/Turning16Card";
 
 interface DashboardMetrics {
   pendingApplications: number;
@@ -185,41 +186,46 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card 
-            className="border hover:border-primary cursor-pointer transition-colors group"
-            onClick={() => navigate('/admin/applications')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold mb-1">Review Applications</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Process new childminder applications
-                  </p>
+        {/* Turning 16 Section */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Turning16Card />
+          
+          {/* Quick Actions */}
+          <div className="space-y-4">
+            <Card 
+              className="border hover:border-primary cursor-pointer transition-colors group"
+              onClick={() => navigate('/admin/applications')}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold mb-1">Review Applications</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Process new childminder applications
+                    </p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card 
-            className="border hover:border-primary cursor-pointer transition-colors group"
-            onClick={() => navigate('/admin/employees')}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold mb-1">Manage Employees</h3>
-                  <p className="text-sm text-muted-foreground">
-                    View and update employee records
-                  </p>
+            <Card 
+              className="border hover:border-primary cursor-pointer transition-colors group"
+              onClick={() => navigate('/admin/employees')}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold mb-1">Manage Employees</h3>
+                    <p className="text-sm text-muted-foreground">
+                      View and update employee records
+                    </p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AdminLayout>

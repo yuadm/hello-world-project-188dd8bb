@@ -1300,12 +1300,18 @@ export type Database = {
       get_children_turning_16_soon: {
         Args: { days_ahead?: number }
         Returns: {
+          application_id: string
           current_age: number
           date_of_birth: string
           days_until_16: number
+          dbs_status: string
+          email: string
           employee_id: string
           full_name: string
           id: string
+          relationship: string
+          source_type: string
+          turning_16_notification_sent: boolean
           turns_16_on: string
         }[]
       }
@@ -1355,6 +1361,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_all_children_now_adults: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user"
