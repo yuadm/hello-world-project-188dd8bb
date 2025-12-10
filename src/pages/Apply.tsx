@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKProgressCard, RKSectionNav, RKFormHeader, RKButton, RKApplyFooter } from "@/components/apply/rk";
+import { RKProgressCard, RKSectionNav, RKFormHeader, RKButton } from "@/components/apply/rk";
 import { Section1PersonalDetails } from "@/components/apply/Section1PersonalDetails";
 import { Section2AddressHistory } from "@/components/apply/Section2AddressHistory";
 import { Section3Premises } from "@/components/apply/Section3Premises";
@@ -13,9 +13,10 @@ import { Section6Employment } from "@/components/apply/Section6Employment";
 import { Section7People } from "@/components/apply/Section7People";
 import { Section8Suitability } from "@/components/apply/Section8Suitability";
 import { Section9Declaration } from "@/components/apply/Section9Declaration";
-import { ArrowLeft, ArrowRight, AlertCircle, LogOut, Heart } from "lucide-react";
+import { ArrowLeft, ArrowRight, AlertCircle } from "lucide-react";
 import { getValidatorForSection } from "@/lib/formValidation";
-import { Link } from "react-router-dom";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 const SECTIONS = [
   { id: 1, label: "Personal Details" },
@@ -394,26 +395,11 @@ const Apply = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#E8F5F0] rk-apply flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-rk-border sticky top-0 z-50 shadow-sm">
-        <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-[10px] bg-gradient-to-br from-[hsl(163,50%,38%)] to-[hsl(163,50%,32%)] flex items-center justify-center shadow-[0_4px_12px_rgba(12,124,89,0.25)]">
-              <Heart className="h-6 w-6 text-white" fill="currentColor" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-rk-primary font-fraunces leading-tight">ReadyKids</h1>
-              <p className="text-sm text-rk-text-light font-dm-sans">Childminder Registration</p>
-            </div>
-          </Link>
-          <Link 
-            to="/" 
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-rk-gray-700 bg-white border border-rk-gray-300 rounded-md hover:bg-rk-gray-100 transition-all"
-          >
-            Save & Exit
-          </Link>
-        </div>
-      </header>
+      {/* Navigation - Same as home page */}
+      <Navigation />
+
+      {/* Spacer for fixed navbar */}
+      <div className="h-20" />
 
       {/* Main 2-Column Layout */}
       <div className="max-w-[1200px] mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 flex-1">
@@ -508,8 +494,8 @@ const Apply = () => {
         </main>
       </div>
 
-      {/* Footer */}
-      <RKApplyFooter />
+      {/* Footer - Same as home page */}
+      <Footer />
     </div>
   );
 };
