@@ -1,8 +1,8 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKRadio, RKInput, RKButton, RKSectionTitle, RKInfoBox, RKCheckbox, RKSelect } from "./rk";
-import { useMemo } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { RKRadio, RKInput, RKSectionTitle, RKInfoBox, RKCheckbox, RKSelect } from "./rk";
+import { useMemo, useEffect } from "react";
+import { Trash2 } from "lucide-react";
 import {
   calculateCapacityRatios,
 } from "@/lib/capacityCalculator";
@@ -26,12 +26,31 @@ export const Section4Service = ({ form }: Props) => {
     }
   };
 
-  const addAssistant = () => {
-    setValue("assistants", [...assistants, { firstName: "", lastName: "", dob: "", role: "", email: "", phone: "" }]);
-  };
+  // Auto-sync assistants array with numberOfAssistants
+  useEffect(() => {
+    if (workWithOthers === "Yes" && numberOfAssistants > 0) {
+      const currentLength = assistants.length;
+      if (currentLength < numberOfAssistants) {
+        // Add empty assistant entries
+        const newAssistants = [...assistants];
+        for (let i = currentLength; i < numberOfAssistants; i++) {
+          newAssistants.push({ firstName: "", lastName: "", dob: "", role: "", email: "", phone: "" });
+        }
+        setValue("assistants", newAssistants);
+      } else if (currentLength > numberOfAssistants) {
+        // Remove excess entries
+        setValue("assistants", assistants.slice(0, numberOfAssistants));
+      }
+    } else if (workWithOthers === "No") {
+      setValue("assistants", []);
+      setValue("numberOfAssistants", 0);
+    }
+  }, [workWithOthers, numberOfAssistants]);
 
   const removeAssistant = (index: number) => {
-    setValue("assistants", assistants.filter((_, i) => i !== index));
+    const newAssistants = assistants.filter((_, i) => i !== index);
+    setValue("assistants", newAssistants);
+    setValue("numberOfAssistants", newAssistants.length);
   };
 
   // Calculate capacity ratios
@@ -217,18 +236,6 @@ export const Section4Service = ({ form }: Props) => {
               </div>
             </div>
           ))}
-          
-          {assistants.length < numberOfAssistants && (
-            <RKButton
-              type="button"
-              variant="secondary"
-              onClick={addAssistant}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add person
-            </RKButton>
-          )}
         </>
       )}
 
