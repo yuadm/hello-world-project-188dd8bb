@@ -14,6 +14,7 @@ import { AdminApplicationEditForm } from "@/components/admin/AdminApplicationEdi
 import { dbToFormData } from "@/lib/applicationDataMapper";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
+import { UnifiedCochildminderComplianceCard } from "@/components/admin/unified/UnifiedCochildminderComplianceCard";
 import { RequestApplicantDBSModal } from "@/components/admin/RequestApplicantDBSModal";
 import { AppleCard } from "@/components/admin/AppleCard";
 import { PersonalInfoCard } from "@/components/admin/application-detail/PersonalInfoCard";
@@ -459,7 +460,7 @@ const ApplicationDetailNew = () => {
           </AppleCard>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <UnifiedHouseholdComplianceCard
                 parentId={id!}
                 parentType="application"
@@ -467,6 +468,12 @@ const ApplicationDetailNew = () => {
                 parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
               />
               <UnifiedAssistantComplianceCard
+                parentId={id!}
+                parentType="application"
+                parentEmail={dbApplication.email}
+                parentName={`${dbApplication.first_name} ${dbApplication.last_name}`}
+              />
+              <UnifiedCochildminderComplianceCard
                 parentId={id!}
                 parentType="application"
                 parentEmail={dbApplication.email}
