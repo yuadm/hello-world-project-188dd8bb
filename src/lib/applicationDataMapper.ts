@@ -267,9 +267,7 @@ export function formToDbData(formData: Partial<ChildminderApplication>) {
     service_age_range: formData.ageGroups,
     work_with_others: formData.workWithAssistants || formData.workWithOthers,
     number_of_assistants: formData.numberOfAssistants,
-    work_with_cochildminders: formData.workWithCochildminders,
-    number_of_cochildminders: formData.numberOfCochildminders,
-    cochildminders: formData.cochildminders,
+    // Note: cochildminders are stored in compliance_cochildminders table, not here
     service_capacity: {
       under1: formData.proposedUnder1,
       under5: formData.proposedUnder5,
@@ -291,7 +289,6 @@ export function formToDbData(formData: Partial<ChildminderApplication>) {
     },
     employment_history: formData.employmentHistory,
     employment_gaps: formData.employmentGaps,
-    worked_with_children: formData.workedWithChildren,
     child_volunteered: formData.childVolunteered,
     child_volunteered_consent: formData.childVolunteeredConsent,
     applicant_references: {
@@ -353,7 +350,6 @@ export function formToDbData(formData: Partial<ChildminderApplication>) {
     declaration_information_sharing: formData.consentLAShare,
     declaration_data_processing: formData.consentDataProtection,
     declaration_signature: formData.signatureFullName,
-    declaration_print_name: formData.declarationPrintName,
     declaration_date: formData.signatureDate,
     payment_method: null,
   };
