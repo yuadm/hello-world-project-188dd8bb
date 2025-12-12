@@ -1,6 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
 import { ChildminderApplication } from "@/types/childminder";
-import { RKRadio, RKInput, RKSectionTitle, RKInfoBox } from "./rk";
+import { RKRadio, RKInput, RKSectionTitle, RKInfoBox, RKTextarea } from "./rk";
 import { Info } from "lucide-react";
 import { useState } from "react";
 
@@ -139,18 +139,13 @@ export const Section5Qualifications = ({ form }: Props) => {
                 required
                 {...register("firstAid.provider")}
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <RKInput
-                  label="Completion date"
-                  type="date"
-                  required
-                  {...register("firstAid.completionDate")}
-                />
-                <RKInput
-                  label="Certificate number"
-                  {...register("firstAid.certificateNumber")}
-                />
-              </div>
+              <RKInput
+                label="Completion date"
+                type="date"
+                required
+                widthClass="10"
+                {...register("firstAid.completionDate")}
+              />
 
               {isFirstAidExpired() && (
                 <RKInfoBox type="warning">
@@ -159,20 +154,14 @@ export const Section5Qualifications = ({ form }: Props) => {
               )}
             </div>
           )}
-
-          {firstAidCompleted === "No" && (
-            <RKInfoBox type="error">
-              You must complete {requires0to5 ? "a 12-hour Paediatric First Aid course" : "an appropriate first aid qualification"} before your registration can be approved.
-            </RKInfoBox>
-          )}
         </TrainingCard>
       )}
 
       {/* Safeguarding */}
       {(requires0to5 || requires5to7) && (
         <TrainingCard
-          title="Safeguarding Training"
-          question="Have you completed safeguarding children training?"
+          title="Safeguarding and child protection"
+          question="Have you completed safeguarding training?"
           required
           name="safeguarding.completed"
           value={watch("safeguarding.completed") || ""}
@@ -190,8 +179,8 @@ export const Section5Qualifications = ({ form }: Props) => {
       {/* EYFS/Childminding Course */}
       {requires5to7 && (
         <TrainingCard
-          title="EYFS/Childminding Course"
-          question="Have you completed an EYFS or childminding-specific course?"
+          title="Childminding Practice / EYFS Training"
+          question="Have you completed a relevant childminding course?"
           required
           name="eyfsChildminding.completed"
           value={watch("eyfsChildminding.completed") || ""}
@@ -199,6 +188,7 @@ export const Section5Qualifications = ({ form }: Props) => {
         >
           {watch("eyfsChildminding.completed") === "Yes" && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+              <RKInput label="Course title" {...register("eyfsChildminding.courseTitle")} />
               <RKInput label="Training provider" {...register("eyfsChildminding.provider")} />
               <RKInput label="Completion date" type="date" widthClass="10" {...register("eyfsChildminding.completionDate")} />
             </div>
@@ -206,11 +196,11 @@ export const Section5Qualifications = ({ form }: Props) => {
         </TrainingCard>
       )}
 
-      {/* Level 2 Qualification */}
+      {/* Level 2 Qualification / Common Core Skills */}
       {requires8plus && (
         <TrainingCard
-          title="Level 2 Qualification"
-          question="Do you hold a Level 2 qualification in childcare or education?"
+          title="Level 2 Qualification / Common Core Skills"
+          question="Do you have a minimum level 2 qualification OR training in the common core skills?"
           required
           name="level2Qual.completed"
           value={watch("level2Qual.completed") || ""}
@@ -222,8 +212,18 @@ export const Section5Qualifications = ({ form }: Props) => {
               <RKInput label="Completion date" type="date" widthClass="10" {...register("level2Qual.completionDate")} />
             </div>
           )}
-        </TrainingCard>
+          </TrainingCard>
       )}
+
+      {/* Other relevant training */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <RKTextarea
+          label="Other relevant training or qualifications"
+          hint="Please list any other relevant training (e.g SEND, Behaviour Management)"
+          rows={4}
+          {...register("otherTraining")}
+        />
+      </div>
     </div>
   );
 };
