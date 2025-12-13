@@ -272,7 +272,6 @@ const Apply = () => {
           declaration_information_sharing: data.consentLAShare,
           declaration_data_processing: data.consentDataProtection,
           declaration_signature: data.signatureFullName,
-          declaration_print_name: data.declarationPrintName,
           declaration_date: data.signatureDate,
           payment_method: null,
           user_id: null,

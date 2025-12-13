@@ -436,7 +436,6 @@ const ApplicationDetailNew = () => {
             declarationInformationSharing={dbApplication.declaration_information_sharing}
             declarationDataProcessing={dbApplication.declaration_data_processing}
             declarationSignature={dbApplication.declaration_signature}
-            declarationPrintName={dbApplication.declaration_print_name}
             declarationDate={dbApplication.declaration_date}
             paymentMethod={dbApplication.payment_method}
           />

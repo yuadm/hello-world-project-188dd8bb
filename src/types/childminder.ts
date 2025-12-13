@@ -195,6 +195,5 @@ export interface ChildminderApplication {
   declarationNotify: boolean;
   // Signature
   signatureFullName: string;
-  declarationPrintName: string;
   signatureDate: string;
 }

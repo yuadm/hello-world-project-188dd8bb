@@ -72,7 +72,7 @@ interface DBApplication {
   declaration_information_sharing: boolean;
   declaration_data_processing: boolean;
   declaration_signature: string;
-  declaration_print_name: string;
+  
   declaration_date: string;
   payment_method: string;
   home_postcode: string;
@@ -220,7 +220,6 @@ export function dbToFormData(dbApp: DBApplication): Partial<ChildminderApplicati
     declarationTruth: dbApp.declaration_confirmed,
     declarationNotify: dbApp.declaration_change_notification,
     signatureFullName: dbApp.declaration_signature,
-    declarationPrintName: dbApp.declaration_print_name || dbApp.declaration_signature,
     signatureDate: dbApp.declaration_date,
   };
 }

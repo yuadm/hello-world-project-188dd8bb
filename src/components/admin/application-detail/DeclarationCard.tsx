@@ -9,7 +9,6 @@ interface DeclarationCardProps {
   declarationInformationSharing?: boolean;
   declarationDataProcessing?: boolean;
   declarationSignature?: string;
-  declarationPrintName?: string;
   declarationDate?: string;
   paymentMethod?: string;
 }
@@ -21,7 +20,6 @@ export const DeclarationCard = ({
   declarationInformationSharing,
   declarationDataProcessing,
   declarationSignature,
-  declarationPrintName,
   declarationDate,
   paymentMethod,
 }: DeclarationCardProps) => {
@@ -69,12 +67,6 @@ export const DeclarationCard = ({
           </div>
         )}
 
-        {declarationPrintName && declarationPrintName !== declarationSignature && (
-          <div className="pt-2">
-            <div className="text-xs font-medium text-muted-foreground mb-2">Print Name</div>
-            <div className="text-sm font-medium">{declarationPrintName}</div>
-          </div>
-        )}
 
         {declarationDate && (
           <div className="flex items-center gap-3 rounded-lg bg-muted/30 p-3">
