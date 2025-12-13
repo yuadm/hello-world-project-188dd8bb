@@ -339,19 +339,17 @@ const Apply = () => {
         }
 
         if (data.assistants && Array.isArray(data.assistants)) {
-          const assistantRecords = data.assistants
-            .filter((assistant: any) => assistant.firstName && assistant.lastName)
-            .map((assistant: any) => ({
-              application_id: applicationId,
-              first_name: assistant.firstName,
-              last_name: assistant.lastName,
-              date_of_birth: assistant.dob,
-              role: assistant.role || 'Assistant',
-              email: assistant.email,
-              phone: assistant.phone,
-              dbs_status: 'not_requested' as const,
-              form_status: 'not_sent' as const
-            }));
+          const assistantRecords = data.assistants.map((assistant: any) => ({
+            application_id: applicationId,
+            first_name: assistant.firstName,
+            last_name: assistant.lastName,
+            date_of_birth: assistant.dob,
+            role: assistant.role,
+            email: assistant.email,
+            phone: assistant.phone,
+            dbs_status: 'not_requested' as const,
+            form_status: 'not_sent' as const
+          }));
 
           if (assistantRecords.length > 0) {
             const { error: assistantError } = await supabase
@@ -360,32 +358,6 @@ const Apply = () => {
             
             if (assistantError) {
               console.error("Failed to create assistant records:", assistantError);
-            }
-          }
-        }
-
-        // Create co-childminder records
-        if (data.cochildminders && Array.isArray(data.cochildminders)) {
-          const cochildminderRecords = data.cochildminders
-            .filter((cc: any) => cc.firstName && cc.lastName)
-            .map((cc: any) => ({
-              application_id: applicationId,
-              first_name: cc.firstName,
-              last_name: cc.lastName,
-              date_of_birth: cc.dob,
-              email: cc.email,
-              phone: cc.phone,
-              dbs_status: 'not_requested' as const,
-              form_status: 'not_sent' as const
-            }));
-
-          if (cochildminderRecords.length > 0) {
-            const { error: ccError } = await supabase
-              .from('compliance_cochildminders')
-              .insert(cochildminderRecords);
-            
-            if (ccError) {
-              console.error("Failed to create co-childminder records:", ccError);
             }
           }
         }
