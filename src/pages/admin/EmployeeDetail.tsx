@@ -11,6 +11,7 @@ import AdminLayout from "@/components/admin/AdminLayout";
 import { Employee } from "@/types/employee";
 import { UnifiedHouseholdComplianceCard } from "@/components/admin/unified/UnifiedHouseholdComplianceCard";
 import { UnifiedAssistantComplianceCard } from "@/components/admin/unified/UnifiedAssistantComplianceCard";
+import { UnifiedCochildminderComplianceCard } from "@/components/admin/unified/UnifiedCochildminderComplianceCard";
 import { ReferencesCard } from "@/components/admin/application-detail/ReferencesCard";
 import { EmployeeDBSCard } from "@/components/admin/employee-detail/EmployeeDBSCard";
 import { KnownToOfstedCard } from "@/components/admin/KnownToOfstedCard";
@@ -179,7 +180,7 @@ const AdminEmployeeDetail = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <EmployeeDBSCard
             dbsStatus={employee.dbs_status || "not_requested"}
             dbsCertificateNumber={employee.dbs_certificate_number}
@@ -194,6 +195,12 @@ const AdminEmployeeDetail = () => {
             parentName={`${employee.first_name} ${employee.last_name}`}
           />
           <UnifiedAssistantComplianceCard
+            parentId={id!}
+            parentType="employee"
+            parentEmail={employee.email}
+            parentName={`${employee.first_name} ${employee.last_name}`}
+          />
+          <UnifiedCochildminderComplianceCard
             parentId={id!}
             parentType="employee"
             parentEmail={employee.email}
