@@ -36,7 +36,7 @@ export const Section4Service = ({ form }: Props) => {
       if (currentLength < numberOfAssistants) {
         const newAssistants = [...assistants];
         for (let i = currentLength; i < numberOfAssistants; i++) {
-          newAssistants.push({ firstName: "", lastName: "", dob: "", email: "", phone: "" });
+          newAssistants.push({ firstName: "", lastName: "", dob: "", role: "", email: "", phone: "" });
         }
         setValue("assistants", newAssistants);
       } else if (currentLength > numberOfAssistants) {
@@ -256,19 +256,35 @@ export const Section4Service = ({ form }: Props) => {
                     required
                     {...register(`assistants.${index}.dob`)}
                   />
+                  <div>
+                    <label className="block text-sm font-medium text-rk-text mb-1">
+                      Role<span className="text-rk-error ml-1">*</span>
+                    </label>
+                    <select
+                      className="w-full p-2 border border-rk-border rounded-lg bg-white text-rk-text"
+                      {...register(`assistants.${index}.role`)}
+                      required
+                    >
+                      <option value="">Select role</option>
+                      <option value="Assistant">Assistant</option>
+                      <option value="Senior Assistant">Senior Assistant</option>
+                      <option value="Trainee">Trainee</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <RKInput
                     label="Email address"
                     type="email"
                     required
                     {...register(`assistants.${index}.email`)}
                   />
+                  <RKInput
+                    label="Mobile number"
+                    type="tel"
+                    {...register(`assistants.${index}.phone`)}
+                  />
                 </div>
-                <RKInput
-                  label="Mobile number"
-                  type="tel"
-                  widthClass="20"
-                  {...register(`assistants.${index}.phone`)}
-                />
               </div>
             ))}
             
