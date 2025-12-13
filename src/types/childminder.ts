@@ -45,6 +45,7 @@ export interface AssistantEntry {
   firstName: string;
   lastName: string;
   dob: string;
+  role: string;
   email: string;
   phone: string;
 }
